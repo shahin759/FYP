@@ -21,13 +21,30 @@ API_KEY = "7eabd148-3685-4360-be0c-555c97ec868c"
 BASE_URL = "https://www.reed.co.uk/api/1.0"
 
 class User(db.Model):
+    __tablename__="user"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     name = db.Column(db.String(100))
-    skills = db.Column(db.Text)
-    experience = db.Column(db.Text)
-    career_goals = db.Column(db.Text)
+    skills = db.relationships("UserSkill",back_populates="user",cascade="all, delete-orphan")
+
+class Skill(db.Model):
+    __tablename__="skill"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), unique=True, nullable=False)
+    users = db.relationships("UserSkill",back_populates="skill",cascade="all, delete-orphan")
+
+class UserSkill(db.Model):
+    __tablename__="user_skill"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id=db.Column(db.Integer,db.ForeignKey("user.id"), nullable=False)
+    skill_id = db.Column(db.Integer, db.ForeignKey("skill.id"), nullable=False)
+    user = db.relationship("User", back_populates="skills")
+    skill = db.relationship("Skill", back_populates="users")
+
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "skill_id", name="uq_user_skill"),
+    )
 
     def __repr__(self):
         return f'<User {self.email}>'
@@ -170,6 +187,28 @@ def courses_page():
 
     return render_template("courses_page.html",courses=course_list,search_course=request.args.get('course', ''), total_results=len(course_list))
 
+
+@app.route('/upload_cv', methods=["GET", "POST"])
+def upload_cv():
+    if 'user' not in session:
+        flash('Login first', 'error')
+        return redirect(url_for('login_page'))
+
+    user = User.query.filter_by(email=session['user']).first()
+
+    if not user:
+        flash('User not found', 'error')
+        return redirect(url_for('login_page'))
+
+    if request.method =='POST':
+     skillInput= request.form.get('skillInput')
+
+    user.skills=skillInput
+    db.session.commit()
+  
+    flash('Skill addede successfully', 'success')
+  
+    return render_template("upload_cv.html", user=user)
 
 @app.route('/logout')
 def logout():

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seeker - Job Listings</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='home_page.css') }}">
+</head>
+
+<body>
+  {% include 'navbar.html' %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<h1> Upload your skills and experiences</h1>
+
+<form method="POST" action="{{ url_for('upload_cv') }}">
+    <div class="skill-input">
+      <input type="text" name="skills" class="entrybox"
+             placeholder="e.g. Python, Teamwork, Excel" required>
+      <button type="submit" class="loged">Save</button>
+    </div>
+  </form>
+
+</body>
+</html>

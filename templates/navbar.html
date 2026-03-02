@@ -7,6 +7,7 @@
       <li><a href="{{ url_for('home_page') }}" class="{% if request.endpoint == 'home_page' %}active{% endif %}">Home</a></li>
       <li><a href="{{ url_for('account_page') }}" class="{% if request.endpoint == 'account' %}active{% endif %}">Profile</a></li>
       <li><a href="{{ url_for('courses_page') }}" class="{% if request.endpoint == 'coureses' %}active{% endif %}">Courses</a></li>
+      <li><a href="{{ url_for('upload_cv')}}" class ="{% if request.endpoint == 'upload_cv' %} active {% endif %}">Upload CV </a></li>
       {%if session.get('user')%}
       <li><a href="{{url_for('logout')}}"> Logout</a></li>
       {%else%}
