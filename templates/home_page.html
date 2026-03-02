@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seeker - Job Listings</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='home_page.css') }}">
+</head>
+
+<body>
+  {% include 'navbar.html' %}
+ 
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+<div class = "jobs">
+<h1>Job Listings</h1>
+
+{% if jobs%}
+
+<div class="search">
+  <form method="GET" action="{{ url_for('home_page') }}" class="search-form">
+    <div class="search-inputs">
+      <div class="search-field">
+        <input type="text" name="keywords" placeholder="Search for jobs or keywords"
+               value="{{ search_keywords or '' }}" class="search-input">
+      </div>
+
+      <div class="search-field">
+        <input type="text" name="location" placeholder="Enter location"
+               value="{{ location or '' }}" class="search-input">
+      </div>
+
+      <button type="submit" class="search-button">Search</button>
+      {% if search_keyword or location %}
+        <a href="{{ url_for('home_page') }}" class="clear-btn">Clear</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<ul>
+ {%for job in jobs%}
+  <li>
+  <h2>Title:{{ job.get('jobTitle', 'No Title') }}</h2>
+  <p>Location:{{ job.get('locationName', 'No location') }}</p>
+  <p>Employer:{{ job.get('employerName', 'No employer') }}</p>
+{% if job.get('minimumSalary') and job.get('maximumSalary') %}
+  <p>Salary: £{{ "{:,}".format(job.get('minimumSalary')) }} - £{{ "{:,}".format(job.get('maximumSalary')) }}</p>
+{% else %}
+  <p>Salary: Not listed</p>
+{% endif %}
+
+  <a href="{{ url_for('job_details', job_id=job['jobId']) }}">
+    <button type="button" class="loged">View Job Details</button>
+  </a>
+</li>
+{% endfor %}
+</ul>
+{% else %}
+<p>No jobs available at the moment.</p>
+{% endif %}
+</div>
+</body>
+</html>

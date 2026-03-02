@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ job.jobTitle }} - Seeker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='job_details.css') }}">
+</head>
+
+<body>
+{% include 'navbar.html'%}
+
+<div class="job_details">
+    <a href="{{ url_for('home_page') }}" class="back-btn">Back to Jobs</a>
+    <h1>{{ job.jobTitle }}</h1>
+    
+    <p><strong>Employer:</strong> {{ job.employerName }}</p>
+    <p><strong>Location:</strong> {{ job.locationName }}</p>
+    {% if job.minimumSalary and job.maximumSalary %}
+    <p><strong>Salary:</strong> £{{ "{:,}".format(job.minimumSalary) }} - £{{ "{:,}".format(job.maximumSalary) }}</p>
+    {% endif %}
+    <h3>Job Description</h3>
+    <div class="description">
+        {{ job.jobDescription | safe }}
+    </div>
+</div>
+
+
+
+    <a href="{{ job.jobUrl }}" target="_blank" class="apply-btn">Apply Now on Reed</a>
+</div>
+
+</body>

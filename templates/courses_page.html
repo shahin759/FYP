@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seeker - Courses</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='courses_page.css') }}">
+</head>
+
+<body>
+  {% include 'navbar.html' %}
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="courses-page">
+    <h1>Courses</h1>
+
+    <div class="course-container">
+      <h2>Discover free courses to bridge your skills gap</h2>
+    </div>
+
+    <div class="search">
+      <form method="GET" action="{{ url_for('courses_page') }}" class="search-form">
+          <div class="search-field">
+            <input type="text" name="courses" placeholder="Search for courses"
+                   value="{{ search_course or '' }}" class="search-input">
+          </div>
+    
+          <button type="submit" class="search-button">Search</button>
+          {% if search_course %}
+            <a href="{{ url_for('courses_page') }}" class="clear-btn">Clear</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+
+    <div class="courses-grid" id="coursesGrid">
+      {% if courses %}
+        {% for course in courses %}
+          <div class="course-card" data-skills="{{ (course.skills or '')}}">
+            <div class="course-header">
+              <h3 class="course-title">{{ course.course_title }}</h3>
+              <p class="course-provider">{{ course.provider }}</p>
+            </div>
+
+            <div class="course-skills">
+              {% for skill in (course.skills or '').split(',') if skill.strip() %}
+                <span class="skills-tag">{{ skill.strip() }}</span>
+              {% endfor %}
+            </div>
+
+            <div class="course-footer">
+              <a href="{{ course.url }}" class="course-link" >View Course</a>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="error">
+          <h3>No courses found</h3>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

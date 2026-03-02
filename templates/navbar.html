@@ -1,0 +1,18 @@
+<nav class="navbar">
+    <div class="nav-brand">
+<link rel="stylesheet" href="{{ url_for('static', filename='navbar.css') }}">
+    </div>
+    <ul class="nav-links">
+      
+      <li><a href="{{ url_for('home_page') }}" class="{% if request.endpoint == 'home_page' %}active{% endif %}">Home</a></li>
+      <li><a href="{{ url_for('account_page') }}" class="{% if request.endpoint == 'account' %}active{% endif %}">Profile</a></li>
+      <li><a href="{{ url_for('courses_page') }}" class="{% if request.endpoint == 'coureses' %}active{% endif %}">Courses</a></li>
+      {%if session.get('user')%}
+      <li><a href="{{url_for('logout')}}"> Logout</a></li>
+      {%else%}
+      <li><a href="{{ url_for('login_page') }}" class="{% if request.endpoint == 'login_page' %}active{% endif %}">Login</a></li>
+      {%endif%}
+      
+      
+    </ul>
+  </nav>

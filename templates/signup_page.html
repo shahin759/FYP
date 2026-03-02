@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Seeker</title>
+    <link rel="icon" type="image/png"
+    href="{{ url_for('static', filename='images/logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='signup_page.css') }}">
+</head>
+
+<body>
+{%include 'navbar.html'%}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div class="singupuser">
+<h1>Create Account </h1>
+
+<form method="POST" action="{{ url_for('signup_page') }}">
+    <input type="firstname" name="firstname" placeholder="First name" class="entrybox" required><br><br>
+    <input type="lastname" name="lastname" placeholder="Last name" class="entrybox" required><br><br>
+    <input type="email" name="email" placeholder="Email" class="entrybox" required><br><br>
+    <input type="password" name="password" placeholder="Password" class="entrybox" required><br><br>
+    <input type="password" name="confirm_password" placeholder="Confirm Password" class="entrybox" required><br><br>
+    <button type="submit" class="loged">Sign Up</button><br><br>
+
+    <button type="button" class="signup" onclick="window.location.href='{{ url_for('login_page') }}'">
+        Already have an account? Login
+    </button>
+</form>
+</div>
+
+</body>
