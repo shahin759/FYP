@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seeker - Job Listings</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='home_page.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='upload_cv.css') }}">
 </head>
 
 <body>
@@ -24,12 +24,50 @@
 <h1> Upload your skills and experiences</h1>
 
 <form method="POST" action="{{ url_for('upload_cv') }}">
+    <input type="hidden" name="action" value="add_skill">
+  
     <div class="skill-input">
       <input type="text" name="skills" class="entrybox"
              placeholder="e.g. Python, Teamwork, Excel" required>
-      <button type="submit" class="loged">Save</button>
+      <button type="submit" class="loged">Add</button>
     </div>
   </form>
 
+  <ul class="skill-list">
+    {% for us in user.skills %}
+      <li class="skill-item">
+        {{ us.skill.name }}
+  
+        <form method="POST" action="{{ url_for('upload_cv') }}" class="delete-form">
+          <input type="hidden" name="action" value="delete_skill">
+          <input type="hidden" name="skill_id" value="{{ us.skill.id }}">
+          <button type="submit" class="delete-btn">✕</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <form method="POST" action="{{ url_for('upload_cv') }}">
+    <input type="hidden" name="action" value="add_goals">
+  
+    <div class="goals-input">
+        <input type="text" name="goals" class="entrybox"
+               placeholder="e.g. Software Engineer, Data Analyst" required>
+        <button type="submit" class="loged">Add</button>
+      </div>
+    </form>
+    
+    {% if user.carrer_goal %}
+    <div class="goal-item">
+      {{ user.carrer_goal }}
+      <form method="POST" action="{{ url_for('upload_cv') }}" class="delete-form">
+        <input type="hidden" name="action" value="delete_goal">
+        <input type="hidden" name="carrer_goal" value="{{ user.carrer_goal }}">
+        <button type="submit" class="delete-btn">✕</button>
+      </form>
+    </div>
+  {% else %}
+    <p>No career goal added yet</p>
+  {% endif %}
 </body>
 </html>

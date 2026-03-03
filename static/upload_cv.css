@@ -1,0 +1,63 @@
+.flash-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: auto;
+    max-width: 500px;
+  }
+  
+  .flash {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    animation: slideIn 0.25s ease-out;
+    font-size: 14px;
+  }
+  
+  .flash.success { background: #2dbb4e; }
+  .flash.error   { background: #e41919; }
+  .flass.info {background:rgb(231, 206, 43) ;}
+  
+  @keyframes slideIn {
+    from { transform: translateX(15px); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+  }
+
+  .skill-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.skill-item {
+    background: #e9f2ff;
+    color: #007bff;
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+}
+
+.delete-form {
+    margin-left: 6px;
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: red;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.delete-btn:hover {
+    color: darkred;
+}

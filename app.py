@@ -26,13 +26,14 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     name = db.Column(db.String(100))
-    skills = db.relationships("UserSkill",back_populates="user",cascade="all, delete-orphan")
+    carrer_goal= db.Column(db.String(100))
+    skills = db.relationship("UserSkill",back_populates="user",cascade="all, delete-orphan")
 
 class Skill(db.Model):
     __tablename__="skill"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True, nullable=False)
-    users = db.relationships("UserSkill",back_populates="skill",cascade="all, delete-orphan")
+    users = db.relationship("UserSkill",back_populates="skill",cascade="all, delete-orphan")
 
 class UserSkill(db.Model):
     __tablename__="user_skill"
@@ -200,16 +201,63 @@ def upload_cv():
         flash('User not found', 'error')
         return redirect(url_for('login_page'))
 
-    if request.method =='POST':
-     skillInput= request.form.get('skillInput')
+    if request.method == 'POST':
+        action = request.form.get("action")
 
-    user.skills=skillInput
-    db.session.commit()
-  
-    flash('Skill addede successfully', 'success')
-  
+        if action == "add_skill":
+            skill_input = request.form.get('skills', '').strip()
+
+            if not skill_input:
+                flash("Enter a skill", "error")
+                return redirect(url_for('upload_cv'))
+
+            skill = Skill.query.filter_by(name=skill_input).first()
+            if not skill:
+                skill = Skill(name=skill_input)
+                db.session.add(skill)
+                db.session.flush()
+
+            exists = UserSkill.query.filter_by(
+                user_id=user.id,
+                skill_id=skill.id
+            ).first()
+
+            if exists:
+                flash('You already added that skill', 'info')
+            else:
+                db.session.add(UserSkill(user_id=user.id, skill_id=skill.id))
+                db.session.commit()
+                flash('Skill added successfully', 'success')
+
+      
+        elif action == "delete_skill":
+            skill_id = request.form.get("skill_id")
+
+            link = UserSkill.query.filter_by(
+                user_id=user.id,
+                skill_id=skill_id
+            ).first()
+
+            if link:
+                db.session.delete(link)
+                db.session.commit()
+                flash("Skill removed", "success")
+
+        elif action=="add_goals":
+          goals_input=request.form.get("goals")
+          user.carrer_goal=goals_input
+          db.session.commit()
+          flash("carrer goal added", "success")
+        elif action == "delete_goal":
+          user.carrer_goal = None
+          db.session.commit()
+          flash("Career goal removed", "success")
+
     return render_template("upload_cv.html", user=user)
 
+
+
+   
 @app.route('/logout')
 def logout():
     session.pop('user',None)

@@ -1,4 +1,4 @@
-/* Reset */
+
 * {
     margin: 0;
     padding: 0;
@@ -6,13 +6,13 @@
     font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Same background as home page */
+
 body {
     background-color: #f4f6f9;
     padding: 30px;
 }
 
-/* Main card */
+
 .job_details {
     max-width: 900px;
     margin: auto;
@@ -22,7 +22,7 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-/* Back button */
+
 .back-btn {
     display: inline-block;
     margin-bottom: 15px;
@@ -35,32 +35,32 @@ body {
     text-decoration: underline;
 }
 
-/* Title */
+
 .job_details h1 {
     margin-bottom: 15px;
 }
 
-/* Paragraph spacing */
+
 .job_details p {
     margin-bottom: 8px;
     color: #555;
 }
 
-/* Salary highlight */
+
 .salary {
     color: #28a745;
     font-weight: bold;
     margin-top: 5px;
 }
 
-/* Description */
+
 .description {
     margin-top: 15px;
     line-height: 1.6;
     color: #444;
 }
 
-/* Apply button */
+
 .apply-btn {
     display: inline-block;
     margin-top: 20px;
