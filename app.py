@@ -407,12 +407,6 @@ import os
 from werkzeug.utils import secure_filename
 from flask import request, redirect, url_for, flash, session
 
-UPLOAD_FOLDER = "uploads"
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-
-def allowed_pdf(filename: str) -> bool:
-    return "." in filename and filename.rsplit(".", 1)[1].lower() == "pdf"
-
 @app.route("/extract_skills_from_cv", methods=["POST"])
 def extract_skills_from_cv():
     if "user" not in session:
@@ -433,36 +427,52 @@ def extract_skills_from_cv():
         flash("Only PDF files are allowed", "error")
         return redirect(url_for("upload_cv"))
 
-    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-    filename = secure_filename(file.filename)
-    path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-    file.save(path)
+    try:
+     
+        import io
+        from pdfminer.high_level import extract_text_to_fp
+        from pdfminer.layout import LAParams
 
-    cv_text = pdf_to_text(path)
-    if not cv_text:
-        flash("Could not read text from PDF", "error")
-        return redirect(url_for("upload_cv"))
+        pdf_bytes = file.read()
+        output = io.StringIO()
+        extract_text_to_fp(io.BytesIO(pdf_bytes), output, laparams=LAParams())
+        cv_text = output.getvalue().lower()
+        cv_text = re.sub(r"\s+", " ", cv_text).strip()
 
-    skills_list = load_skills_from_csv("csv/skills.csv") 
-    extracted = extract_skills_from_text(cv_text, skills_list)
+        if not cv_text:
+            flash("Could not extract text from PDF", "error")
+            return redirect(url_for("upload_cv"))
 
-    added = 0
-    for name in extracted:
-        skill = Skill.query.filter_by(name=name).first()
-        if not skill:
-            skill = Skill(name=name)
-            db.session.add(skill)
-            db.session.flush()
+        skills_list = load_skills_from_csv("csv/skills.csv")
+        extracted = extract_skills_from_text(cv_text, skills_list)
 
-        exists = UserSkill.query.filter_by(user_id=user.id, skill_id=skill.id).first()
-        if not exists:
-            db.session.add(UserSkill(user_id=user.id, skill_id=skill.id))
-            added += 1
+        added = 0
+        for name in extracted:
+            skill = Skill.query.filter_by(name=name).first()
+            if not skill:
+                skill = Skill(name=name)
+                db.session.add(skill)
+                db.session.flush()
 
-    db.session.commit()
-    flash(f"Found {len(extracted)} skills, added {added} new", "success")
+            exists = UserSkill.query.filter_by(
+                user_id=user.id, skill_id=skill.id
+            ).first()
+            if not exists:
+                db.session.add(UserSkill(user_id=user.id, skill_id=skill.id))
+                added += 1
+
+        db.session.commit()
+        flash(f"Found {len(extracted)} skills, added {added} new", "success")
+
+    except Exception as e:
+        print(f"CV error: {e}")
+        flash("Error processing CV", "error")
+
     return redirect(url_for("upload_cv"))
 
+def allowed_pdf(filename: str) -> bool:
+    return filename.lower().endswith('.pdf')
+    
 @app.route('/edit_account', methods=["GET", "POST"])
 def edit_account():
     if 'user' not in session:
