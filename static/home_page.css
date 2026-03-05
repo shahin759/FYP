@@ -103,3 +103,54 @@ li p {
 .loged:hover {
     background-color: #218838;
 }
+
+.tag {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 14px;
+    font-size: 12px;
+    margin: 3px 6px 0 0;
+}
+
+.tag-have {
+    background: #e9f2ff;
+    color: #007bff;
+}
+
+.tag-missing {
+    background: #ffe9ea;
+    color: #dc3545;
+}
+
+.tag-more {
+    background: #f1f3f5;
+    color: #555;
+}
+.flash-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: auto;
+    max-width: 500px;
+  }
+  
+  .flash {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    animation: slideIn 0.25s ease-out;
+    font-size: 14px;
+  }
+  
+  .flash.success { background: #28a745; }
+  .flash.error   { background: #dc3545; }
+
+  
+  @keyframes slideIn {
+    from { transform: translateX(15px); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+  }

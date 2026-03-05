@@ -23,6 +23,11 @@
 
 <h1> Upload your skills and experiences</h1>
 
+<form method="POST" action="{{ url_for('extract_skills_from_cv') }}" enctype="multipart/form-data">
+  <input type="file" name="cv" accept="application/pdf" class="entrybox" required>
+  <button type="submit" class="loged">Upload PDF & Extract Skills</button>
+</form>
+
 <form method="POST" action="{{ url_for('upload_cv') }}">
     <input type="hidden" name="action" value="add_skill">
   
@@ -69,5 +74,22 @@
   {% else %}
     <p>No career goal added yet</p>
   {% endif %}
+
+  <form method="POST" action="{{ url_for('upload_cv') }}">
+    <input type="hidden" name="action" value="save_experience">
+  
+    <div class="form-group">
+      <select id="experience" name="experience" class="dropdown">
+        <option value="">Select your experience level</option>
+        <option value="Junior" {% if user.experience_level == "Junior" %}selected{% endif %}>Junior</option>
+        <option value="Mid-level" {% if user.experience_level == "Mid-level" %}selected{% endif %}>Mid-level</option>
+        <option value="Senior" {% if user.experience_level == "Senior" %}selected{% endif %}>Senior</option>
+      </select>
+  
+      <button type="submit" class="save-btn">Save</button>
+    </div>
+  </form>
+  <p>{{user.experience_level}}</p>
+  
 </body>
 </html>

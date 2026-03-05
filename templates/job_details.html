@@ -8,26 +8,100 @@
 </head>
 
 <body>
-{% include 'navbar.html'%}
+{% include 'navbar.html' %}
 
 <div class="job_details">
     <a href="{{ url_for('home_page') }}" class="back-btn">Back to Jobs</a>
+
     <h1>{{ job.jobTitle }}</h1>
-    
     <p><strong>Employer:</strong> {{ job.employerName }}</p>
     <p><strong>Location:</strong> {{ job.locationName }}</p>
+
     {% if job.minimumSalary and job.maximumSalary %}
     <p><strong>Salary:</strong> £{{ "{:,}".format(job.minimumSalary) }} - £{{ "{:,}".format(job.maximumSalary) }}</p>
     {% endif %}
+
+    {% if match_result %}
+    <div class="match-card">
+        <h3>Match Analysis</h3>
+        <p class="match-score-label">
+            Match Score: <strong>{{ match_result.score }}%</strong>
+        </p>
+        <div class="match-bar-bg">
+            <div class="match-bar-fill" style="width: {{ match_result.score }}%; background: {% if match_result.score >= 60 %}#4CAF50{% elif match_result.score >= 30 %}#FF9800{% else %}#9E9E9E{% endif %};"></div>
+        </div>
+        <p>You match <strong>{{ match_result.total_matching }}</strong> out of <strong>{{ match_result.job_total_skills }}</strong> required skills</p>
+      </div>        
+      {% endif %}
+     
+        {% if match_result.matching_skills %}
+        <div class="skill-section">
+            <h4>Skills You Have ({{ match_result.matching_skills|length }})</h4>
+            <p>{{ match_result.matching_skills | join(', ') }}</p>
+        </div>
+        {% endif %}
+
+        {% if match_result.missing_skills %}
+        <div class="skill-section">
+            <h4>Skills to Develop ({{ match_result.missing_skills|length }})</h4>
+            <p class="skill-hint">Develop these skills to increase your match score</p>
+            <p>{{ match_result.missing_skills | join(', ') }}</p>
+        </div>
+        {% endif %}
+
+  
+    {% if recommended_courses %}
+    <div class="courses-section">
+        <h3>Recommended Courses</h3>
+        <p>Take these courses to develop your missing skills:</p>
+        <div class="course-grid">
+            {% for course in recommended_courses %}
+            <div class="course-card">
+                <h4>{{ course.course_title }}</h4>
+                <p><strong>Provider:</strong> {{ course.provider }}</p>
+                <p><strong>Skills covered:</strong> {{ course.skills }}</p>
+                <a href="{{ course.url }}" target="_blank">
+                    <button class="course-btn">Start Learning</button>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    
+    {% if job_skills %}
+    <div class="skill-section">
+        <h3>Skills Required for This Role ({{ job_skills|length }})</h3>
+        <p>{{ job_skills | join(', ') }}</p>
+    </div>
+    {% endif %}
+
+    {% if user_skills and not match_result %}
+    <div class="skill-section">
+        <h3>Your Skills</h3>
+        <p>{{ user_skills | join(', ') }}</p>
+    </div>
+    {% endif %}
+    
+    {% if not match_result and not user_skills %}
+    <div class="login-prompt">
+        <p>
+            <a href="{{ url_for('login_page') }}">Log in</a> or
+            <a href="{{ url_for('signup_page') }}">sign up</a>
+            to see your personalised match score for this role.
+        </p>
+    </div>
+    {% endif %}
+
+   
     <h3>Job Description</h3>
     <div class="description">
         {{ job.jobDescription | safe }}
     </div>
-</div>
 
-
-
-    <a href="{{ job.jobUrl }}" target="_blank" class="apply-btn">Apply Now on Reed</a>
+    <a href="{{ job.jobUrl }}" target="_blank" class="apply-btn">Apply on Reed</a>
 </div>
 
 </body>
+</html>

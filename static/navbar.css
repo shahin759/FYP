@@ -9,12 +9,29 @@
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-brand {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.nav-logo {
+    height: 40px;
+    width: auto;
+    display: block;
 }
 
 .nav-links {
     list-style: none;
     display: flex;
     gap: 20px;
+    margin: 0;
+    padding: 0;
 }
 
 .nav-links li a {
@@ -34,4 +51,14 @@
 .nav-links li a.active {
     background-color: #007bff;
     color: white;
+}
+
+.logout-link {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.logout-link:hover {
+    background-color: #dc3545 !important;
+    color: white !important;
 }

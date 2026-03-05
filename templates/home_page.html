@@ -49,9 +49,15 @@
 <ul>
  {%for job in jobs%}
   <li>
-  <h2>Title:{{ job.get('jobTitle', 'No Title') }}</h2>
+  <h2>{{ job.get('jobTitle', 'No Title') }}</h2>
   <p>Location:{{ job.get('locationName', 'No location') }}</p>
   <p>Employer:{{ job.get('employerName', 'No employer') }}</p>
+{% if job.experience_level and job.experience_level != 'Not specified' %}
+  <p>Experience level: {{ job.experience_level }}</p>
+{% endif %}
+  <p><strong>Match:</strong> {{ job.match_score }}%</p>
+
+
 {% if job.get('minimumSalary') and job.get('maximumSalary') %}
   <p>Salary: £{{ "{:,}".format(job.get('minimumSalary')) }} - £{{ "{:,}".format(job.get('maximumSalary')) }}</p>
 {% else %}

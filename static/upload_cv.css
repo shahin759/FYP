@@ -1,63 +1,171 @@
-.flash-container {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9999;
-    width: auto;
-    max-width: 500px;
-  }
-  
-  .flash {
-    padding: 12px 14px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    color: white;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    animation: slideIn 0.25s ease-out;
-    font-size: 14px;
-  }
-  
-  .flash.success { background: #2dbb4e; }
-  .flash.error   { background: #e41919; }
-  .flass.info {background:rgb(231, 206, 43) ;}
-  
-  @keyframes slideIn {
-    from { transform: translateX(15px); opacity: 0; }
-    to   { transform: translateX(0);    opacity: 1; }
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
 
-  .skill-list {
-    list-style: none;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+body {
+  background-color: #f4f6f9;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  margin: 20px 0;
+}
+
+form {
+  max-width: 900px;
+  margin: 0 auto 15px auto;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.entrybox {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.entrybox:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.loged {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.loged:hover {
+  background-color: #0056b3;
+}
+
+.skill-input,
+.goals-input,
+.form-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.skill-input .entrybox,
+.goals-input .entrybox {
+  flex: 1;
+  min-width: 250px;
+}
+
+.skill-list {
+  max-width: 900px;
+  margin: 0 auto 15px auto;
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .skill-item {
-    background: #e9f2ff;
-    color: #007bff;
-    padding: 6px 12px;
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    font-size: 14px;
+  background: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .delete-form {
-    margin-left: 6px;
+  display: inline;
+  margin: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
 }
 
 .delete-btn {
-    background: none;
-    border: none;
-    color: red;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 14px;
+  background: none;
+  border: none;
+  color: red;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 14px;
 }
 
 .delete-btn:hover {
-    color: darkred;
+  color: darkred;
 }
+
+.goal-item {
+  max-width: 900px;
+  margin: 0 auto 15px auto;
+  background: white;
+  padding: 12px 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dropdown {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  min-width: 220px;
+}
+
+.save-btn {
+  padding: 8px 12px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background-color: #0056b3;
+}
+
+p {
+  max-width: 900px;
+  margin: 0 auto 15px auto;
+  color: #555;
+}
+
+.flash-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  max-width: 500px;
+  width: 90%;
+}
+
+.flash {
+  padding: 12px 20px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.flash.success { background-color: #28a745; }
+.flash.error { background-color: #dc3545; }
+.flash.info { background-color: #007bff; }
+.flash.warning { background-color: #ffc107; color: #222; }
