@@ -6,7 +6,7 @@
     background: white;
     padding: 15px 30px;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; 
     align-items: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     position: sticky;
@@ -15,16 +15,17 @@
 }
 
 .nav-brand {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
 }
 
-.nav-logo {
-    height: 40px;
+
+.logo {
+    height: 60px;
     width: auto;
     display: block;
 }
+
 
 .nav-links {
     list-style: none;
@@ -33,6 +34,7 @@
     margin: 0;
     padding: 0;
 }
+
 
 .nav-links li a {
     text-decoration: none;

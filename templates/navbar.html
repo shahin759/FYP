@@ -1,7 +1,10 @@
 <nav class="navbar">
-    <div class="nav-brand">
 <link rel="stylesheet" href="{{ url_for('static', filename='navbar.css') }}">
-    </div>
+<div class="nav-brand">
+  <a href="{{ url_for('home_page') }}">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Seeker Logo" class="logo">
+  </a>
+</div>
     <ul class="nav-links">
       
       <li><a href="{{ url_for('home_page') }}" class="{% if request.endpoint == 'home_page' %}active{% endif %}">Home</a></li>

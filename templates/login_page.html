@@ -29,6 +29,7 @@
     <input type="email" name="email"placeholder="Email" class="entrybox" required><br><br>
     <input type="password" name="password"placeholder="Password" class="entrybox" required><br><br>
     <button type="submit" class="login" >Login</button><br><br>
+    <button type="submit" class="forgot_password" onclick="window.location.href='{{url_for('forgot_password')}}'">Forgot password</button>
     <button type="button" class="signup" onclick="window.location.href='{{ url_for('signup_page') }}'">
         Create new account
     </button>

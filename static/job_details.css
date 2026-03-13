@@ -154,3 +154,62 @@ p {
 .apply-btn:hover {
     background-color: #218838;
 }
+.similar-jobs {
+    margin-top: 3rem;
+    border-top: 1px solid #eee;
+    padding-top: 2rem;
+}
+
+.similar-jobs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.similar-job-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1rem;
+    background: #fafafa;
+}
+
+.similar-job-card h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.similar-job-card p {
+    margin: 0.2rem 0;
+    font-size: 0.85rem;
+    color: #666;
+}
+.flash-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: auto;
+    max-width: 500px;
+  }
+  
+  .flash {
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    animation: slideIn 0.25s ease-out;
+    font-size: 14px;
+  }
+  
+  .flash.success { background: #28a745; }
+  .flash.error   { background: #dc3545; }
+
+  
+  @keyframes slideIn {
+    from { transform: translateX(15px); opacity: 0; }
+    to   { transform: translateX(0);    opacity: 1; }
+  }

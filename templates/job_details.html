@@ -12,10 +12,17 @@
 
 <div class="job_details">
     <a href="{{ url_for('home_page') }}" class="back-btn">Back to Jobs</a>
-
+    {% if experience_warning %}
+    <div style="background: #fff3cd; border: 1px solid #ffc107; 
+            padding: 0.8rem 1rem; border-radius: 8px; margin: 1rem 0; color: #856404;">
+    {{ experience_warning }}
+    {{job.ex}}
+    </div>
+    {% endif %}
     <h1>{{ job.jobTitle }}</h1>
     <p><strong>Employer:</strong> {{ job.employerName }}</p>
     <p><strong>Location:</strong> {{ job.locationName }}</p>
+    <p><strong>Experience Level:</strong> {{ job_experience }}</p>
 
     {% if job.minimumSalary and job.maximumSalary %}
     <p><strong>Salary:</strong> £{{ "{:,}".format(job.minimumSalary) }} - £{{ "{:,}".format(job.maximumSalary) }}</p>
@@ -99,6 +106,27 @@
     <div class="description">
         {{ job.jobDescription | safe }}
     </div>
+
+   {% if similar_jobs %}
+   <div class="similar-jobs">
+       <h3>Similar Jobs</h3>
+       <div class="similar-jobs-grid">
+           {% for similar in similar_jobs %}
+           <div class="similar-job-card">
+               <h4>{{ similar.jobTitle }}</h4>
+               <p>{{ similar.employerName }}</p>
+               <p>{{ similar.locationName }}</p>
+               {% if similar.minimumSalary and similar.maximumSalary %}
+               <p>£{{ "{:,}".format(similar.minimumSalary) }} - £{{ "{:,}".format(similar.maximumSalary) }}</p>
+               {% endif %}
+               <a href="{{ url_for('job_details', job_id=similar.jobId) }}">
+                   <button type="button">View Job</button>
+               </a>
+           </div>
+           {% endfor %}
+       </div>
+   </div>
+   {% endif %}
 
     <a href="{{ job.jobUrl }}" target="_blank" class="apply-btn">Apply on Reed</a>
 </div>

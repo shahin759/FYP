@@ -21,10 +21,14 @@
     {% endif %}
   {% endwith %}
 <div class = "jobs">
+
+
 <h1>Job Listings</h1>
 
-{% if jobs%}
 
+
+
+{% if jobs%}
 <div class="search">
   <form method="GET" action="{{ url_for('home_page') }}" class="search-form">
     <div class="search-inputs">
@@ -42,13 +46,23 @@
       {% if search_keyword or location %}
         <a href="{{ url_for('home_page') }}" class="clear-btn">Clear</a>
       {% endif %}
+      <div class="view">
+        view recommended jobs<label class="switch">
+          <input type="checkbox">
+          <span class="slider round"></span>
+        </label> view all jobs
+      </div>
     </div>
+
   </form>
+   
+
 </div>
+<h2>{{title}}</h2>
 
 <ul>
  {%for job in jobs%}
-  <li>
+ <li>
   <h2>{{ job.get('jobTitle', 'No Title') }}</h2>
   <p>Location:{{ job.get('locationName', 'No location') }}</p>
   <p>Employer:{{ job.get('employerName', 'No employer') }}</p>
@@ -73,6 +87,11 @@
 {% else %}
 <p>No jobs available at the moment.</p>
 {% endif %}
-</div>
+<form method="GET" action="{{ url_for('home_page') }}">
+  <input type="hidden" name="keywords" value="{{ search_keywords }}">
+  <input type="hidden" name="location" value="{{ location }}">
+  <input type="hidden" name="page" value="{{ page + 1 }}">
+  <button type="submit" class="more">View more jobs</button>
+</form>
 </body>
 </html>
