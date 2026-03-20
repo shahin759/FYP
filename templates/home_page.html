@@ -46,12 +46,23 @@
       {% if search_keyword or location %}
         <a href="{{ url_for('home_page') }}" class="clear-btn">Clear</a>
       {% endif %}
-      <div class="view">
-        view recommended jobs<label class="switch">
-          <input type="checkbox">
-          <span class="slider round"></span>
-        </label> view all jobs
-      </div>
+      {% if session.get('user') %}
+<form method="GET" action="/">
+    <input type="hidden" name="keywords" value="{{ search_keywords }}">
+    <input type="hidden" name="location" value="{{ location }}">
+    
+    {% if show_all %}
+        <input type="hidden" name="all" value="1">
+        <button type="submit" name="all" value="" class="toggle-btn">
+            Show Recommended Jobs
+        </button>
+    {% else %}
+        <button type="submit" name="all" value="1" class="toggle-btn">
+            Show All Jobs
+        </button>
+    {% endif %}
+</form>
+{% endif %}
     </div>
 
   </form>

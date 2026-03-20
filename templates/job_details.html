@@ -10,26 +10,49 @@
 <body>
 {% include 'navbar.html' %}
 
-<div class="job_details">
-    <a href="{{ url_for('home_page') }}" class="back-btn">Back to Jobs</a>
-    {% if experience_warning %}
-    <div style="background: #fff3cd; border: 1px solid #ffc107; 
-            padding: 0.8rem 1rem; border-radius: 8px; margin: 1rem 0; color: #856404;">
-    {{ experience_warning }}
-    {{job.ex}}
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-container">
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
     </div>
     {% endif %}
-    <h1>{{ job.jobTitle }}</h1>
-    <p><strong>Employer:</strong> {{ job.employerName }}</p>
-    <p><strong>Location:</strong> {{ job.locationName }}</p>
-    <p><strong>Experience Level:</strong> {{ job_experience }}</p>
+{% endwith %}
 
-    {% if job.minimumSalary and job.maximumSalary %}
-    <p><strong>Salary:</strong> £{{ "{:,}".format(job.minimumSalary) }} - £{{ "{:,}".format(job.maximumSalary) }}</p>
+<div class="job_details">
+    <a href="{{ url_for('home_page') }}" class="back-btn">&#8592; Back to Jobs</a>
+
+    {% if experience_warning %}
+    <div class="experience-warning">
+        &#9888; {{ experience_warning }}
+    </div>
     {% endif %}
+
+    <div class="job-header">
+        <h1>{{ job.jobTitle }}</h1>
+        <div class="job-meta">
+            <span><strong>Employer:</strong> {{ job.employerName }}</span>
+            <span><strong>Location:</strong> {{ job.locationName }}</span>
+            <span><strong>Experience Level:</strong> {{ job_experience }}</span>
+            {% if job.minimumSalary and job.maximumSalary %}
+            <span><strong>Salary:</strong> £{{ "{:,}".format(job.minimumSalary) }} - £{{ "{:,}".format(job.maximumSalary) }}</span>
+            {% endif %}
+        </div>
+    </div>
 
     {% if match_result %}
     <div class="match-card">
+        <div class="match-reasoning">
+            <p id="match-reasoning-text">
+                {% if match_reasoning %}
+                    {{ match_reasoning }}
+                {% else %}
+                    Generating reasoning...
+                {% endif %}
+            </p>
+        </div>
+
         <h3>Match Analysis</h3>
         <p class="match-score-label">
             Match Score: <strong>{{ match_result.score }}%</strong>
@@ -38,9 +61,7 @@
             <div class="match-bar-fill" style="width: {{ match_result.score }}%; background: {% if match_result.score >= 60 %}#4CAF50{% elif match_result.score >= 30 %}#FF9800{% else %}#9E9E9E{% endif %};"></div>
         </div>
         <p>You match <strong>{{ match_result.total_matching }}</strong> out of <strong>{{ match_result.job_total_skills }}</strong> required skills</p>
-      </div>        
-      {% endif %}
-     
+
         {% if match_result.matching_skills %}
         <div class="skill-section">
             <h4>Skills You Have ({{ match_result.matching_skills|length }})</h4>
@@ -49,14 +70,25 @@
         {% endif %}
 
         {% if match_result.missing_skills %}
-        <div class="skill-section">
+        <div class="skill-section missing">
             <h4>Skills to Develop ({{ match_result.missing_skills|length }})</h4>
             <p class="skill-hint">Develop these skills to increase your match score</p>
             <p>{{ match_result.missing_skills | join(', ') }}</p>
         </div>
         {% endif %}
+    </div>
+    {% endif %}
 
-  
+    {% if not match_result and not user_skills %}
+    <div class="login-prompt">
+        <p>
+            <a href="{{ url_for('login_page') }}">Log in</a> or
+            <a href="{{ url_for('signup_page') }}">sign up</a>
+            to see your personalised match score for this role.
+        </p>
+    </div>
+    {% endif %}
+
     {% if recommended_courses %}
     <div class="courses-section">
         <h3>Recommended Courses</h3>
@@ -76,7 +108,6 @@
     </div>
     {% endif %}
 
-    
     {% if job_skills %}
     <div class="skill-section">
         <h3>Skills Required for This Role ({{ job_skills|length }})</h3>
@@ -84,52 +115,58 @@
     </div>
     {% endif %}
 
-    {% if user_skills and not match_result %}
-    <div class="skill-section">
-        <h3>Your Skills</h3>
-        <p>{{ user_skills | join(', ') }}</p>
+    <div class="description-section">
+        <h3>Job Description</h3>
+        <div class="description">
+            {{ job.jobDescription | safe }}
+        </div>
+    </div>
+
+    {% if similar_jobs %}
+    <div class="similar-jobs">
+        <h3>Similar Jobs</h3>
+        <div class="similar-jobs-grid">
+            {% for similar in similar_jobs %}
+            <div class="similar-job-card">
+                <h4>{{ similar.jobTitle }}</h4>
+                <p>{{ similar.employerName }}</p>
+                <p>{{ similar.locationName }}</p>
+                {% if similar.minimumSalary and similar.maximumSalary %}
+                <p>£{{ "{:,}".format(similar.minimumSalary) }} - £{{ "{:,}".format(similar.maximumSalary) }}</p>
+                {% endif %}
+                <a href="{{ url_for('job_details', job_id=similar.jobId) }}">
+                    <button type="button">View Job</button>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
     </div>
     {% endif %}
-    
-    {% if not match_result and not user_skills %}
-    <div class="login-prompt">
-        <p>
-            <a href="{{ url_for('login_page') }}">Log in</a> or
-            <a href="{{ url_for('signup_page') }}">sign up</a>
-            to see your personalised match score for this role.
-        </p>
-    </div>
-    {% endif %}
 
-   
-    <h3>Job Description</h3>
-    <div class="description">
-        {{ job.jobDescription | safe }}
-    </div>
-
-   {% if similar_jobs %}
-   <div class="similar-jobs">
-       <h3>Similar Jobs</h3>
-       <div class="similar-jobs-grid">
-           {% for similar in similar_jobs %}
-           <div class="similar-job-card">
-               <h4>{{ similar.jobTitle }}</h4>
-               <p>{{ similar.employerName }}</p>
-               <p>{{ similar.locationName }}</p>
-               {% if similar.minimumSalary and similar.maximumSalary %}
-               <p>£{{ "{:,}".format(similar.minimumSalary) }} - £{{ "{:,}".format(similar.maximumSalary) }}</p>
-               {% endif %}
-               <a href="{{ url_for('job_details', job_id=similar.jobId) }}">
-                   <button type="button">View Job</button>
-               </a>
-           </div>
-           {% endfor %}
-       </div>
-   </div>
-   {% endif %}
-
-    <a href="{{ job.jobUrl }}" target="_blank" class="apply-btn">Apply on Reed</a>
+    <a href="{{ job.jobUrl }}" target="_blank" class="apply-btn">Apply on Reed &#8594;</a>
 </div>
+
+{% if match_result %}
+<script>
+document.addEventListener("DOMContentLoaded", async function () {
+    const reasoning = document.getElementById("match-reasoning-text");
+    if (!reasoning) return;
+
+    try {
+        const response = await fetch("/job/{{ job.jobId }}/match_reasoning");
+        const data = await response.json();
+
+        if (response.ok && data.reasoning) {
+            reasoning.textContent = data.reasoning;
+        } else {
+            reasoning.textContent = "Could not generate reasoning.";
+        }
+    } catch (error) {
+        reasoning.textContent = "Could not generate reasoning.";
+    }
+});
+</script>
+{% endif %}
 
 </body>
 </html>
