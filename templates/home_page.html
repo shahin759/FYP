@@ -5,21 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seeker - Job Listings</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='home_page.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 
 <body>
-  {% include 'navbar.html' %}
+
+  {%include 'navbar.html'%}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
  
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="flash-container">
-        {% for category, message in messages %}
-          <div class="flash {{ category }}">{{ message }}</div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
+  {% if title %}
+  <h2>{{ title }}</h2>
+{% else %}
+  <div class="login-prompt">
+      <p>
+          <a href="{{ url_for('login_page') }}">Log in</a> or
+          <a href="{{ url_for('signup_page') }}">sign up</a>
+          to see your recommended jobs.
+      </p>
+  </div>
+{% endif %} 
+
+
 <div class = "jobs">
 
 
@@ -47,6 +64,7 @@
         <a href="{{ url_for('home_page') }}" class="clear-btn">Clear</a>
       {% endif %}
       {% if session.get('user') %}
+
 <form method="GET" action="/">
     <input type="hidden" name="keywords" value="{{ search_keywords }}">
     <input type="hidden" name="location" value="{{ location }}">
@@ -80,8 +98,9 @@
 {% if job.experience_level and job.experience_level != 'Not specified' %}
   <p>Experience level: {{ job.experience_level }}</p>
 {% endif %}
-  <p><strong>Match:</strong> {{ job.match_score }}%</p>
-
+{% if "user" in session %}
+  <p><strong>View job details to see your match score</strong></p>
+{% endif %}
 
 {% if job.get('minimumSalary') and job.get('maximumSalary') %}
   <p>Salary: £{{ "{:,}".format(job.get('minimumSalary')) }} - £{{ "{:,}".format(job.get('maximumSalary')) }}</p>
@@ -104,5 +123,6 @@
   <input type="hidden" name="page" value="{{ page + 1 }}">
   <button type="submit" class="more">View more jobs</button>
 </form>
+{%include 'footer.html'%}
 </body>
 </html>

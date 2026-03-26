@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from pdfminer.high_level import extract_text
+from pdfminer.high_level import extract_text,extract_text_to_fp
 from pdfminer.layout import LAParams
 from flask_caching import Cache
 from flask_mail import Mail, Message
@@ -20,7 +20,7 @@ app = Flask(__name__)
 
 app.secret_key = "12345678"
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///seeker.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///user.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -43,23 +43,23 @@ app.config["CACHE_DEFAULT_TIMEOUT"]=200
 cache=Cache(app)
 
 
-class User(db.Model):
+class User(db.Model): #user table   
     __tablename__="user"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     name = db.Column(db.String(100))
     experience_level=db.Column(db.String(100))
-    carrer_goal= db.Column(db.String(100))
+    career_goal= db.Column(db.String(100))
     skills = db.relationship("UserSkill",back_populates="user",cascade="all, delete-orphan")
 
-class Skill(db.Model):
+class Skill(db.Model):   #skill table
     __tablename__="skill"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True, nullable=False)
     users = db.relationship("UserSkill",back_populates="skill",cascade="all, delete-orphan")
 
-class UserSkill(db.Model):
+class UserSkill(db.Model):  #user skill table
     __tablename__="user_skill"
     id = db.Column(db.Integer, primary_key=True)
     user_id=db.Column(db.Integer,db.ForeignKey("user.id"), nullable=False)
@@ -77,8 +77,8 @@ class UserSkill(db.Model):
 with app.app_context():
     db.create_all()
  
-
-@app.route("/")
+@cache.memoize(timeout=3600)
+@app.route("/")  # home page, showcasing jobs
 def home_page():
     search_keywords = request.args.get('keywords', '')
     location = request.args.get('location', '')
@@ -103,7 +103,7 @@ def home_page():
         if user:
             user_skills = [us.skill.name for us in user.skills]
             user_experience = (user.experience_level or "").lower()
-            user_goal = (user.carrer_goal or "").lower()
+            user_goal = (user.career_goal or "").lower()
             user_profile_text = build_user_profile_text(user)
             user_skill_count = len(user_skills)
 
@@ -112,16 +112,18 @@ def home_page():
  
     try:
         filtered = get_scored_jobs(
-        tuple(sorted(params.items())),
-        tuple(user_skills),
-        user_profile_text,user_experience,
-        show_all,user_skill_count, 
-        user_goal     
-)
+             tuple(sorted(params.items())),tuple(user_skills),
+             user_profile_text,user_experience,
+             show_all,user_goal,search_keywords
+        )
+
     except Exception as e:
         return f"Error fetching jobs: {e}", 500
 
-    title = "Recommended jobs for you" if "user" in session else "Login or register to view jobs suited to you"
+    if "user" in session:
+      title = "Recommended jobs for you"
+    else:
+      title = None
 
     end = page * per_page
     jobs = filtered[:end]
@@ -149,14 +151,15 @@ def job_details(job_id):
         match_result = None
         match_reasoning = None
         recommended_courses = []
-        missing_skills_tuple = None
-         
+        missing_skills_tuple= None
+        user=None
+
         
         if "user" in session:
             user = User.query.filter_by(email=session["user"]).first()
             if user:
                 user_skills = [us.skill.name for us in user.skills]
-                user_skill_count = len(user_skills)
+            
 
                 user_set = {s.lower().strip() for s in user_skills}
                 job_set = {s.lower().strip() for s in job_skills}
@@ -164,9 +167,9 @@ def job_details(job_id):
                 matching = sorted(user_set & job_set)
                 missing = sorted(job_set - user_set)
 
-                skill_score = skill_overlap_score(user_skills, job_skills)
-                cosine_score = tfidf_cosine_score(build_user_profile_text(user), job_desc)
-                score = final_match_score(skill_score, cosine_score, user_skill_count)
+               
+                user_profile_text = build_user_profile_text(user)
+                score = calculate_match(user_skills, user_profile_text, job_skills, job_desc)
 
                 match_result = {
                     'score': score,
@@ -192,18 +195,16 @@ def job_details(job_id):
 
         job_experience = extract_experience_level(job.get("jobTitle", ""))
         experience_warning = None
-        if "user" in session:
-            user = User.query.filter_by(email=session["user"]).first()
-            if user and user.experience_level and job_experience != "Not specified":
-                if user.experience_level.lower() not in job_experience.lower():
-                    experience_warning = f"This role appears to be {job_experience} level. Your profile is set to {user.experience_level}."
+        if user and user.experience_level and job_experience != "Not specified":
+            if user.experience_level.lower() not in job_experience.lower():
+                experience_warning = f"This role appears to be {job_experience} level. Your profile is set to {user.experience_level}."
 
         return render_template(
             "job_details.html", job=job,job_skills=job_skills,
             user_skills=user_skills,match_result=match_result, 
             recommended_courses=recommended_courses,similar_jobs=similar_jobs,
             job_experience=job_experience,experience_warning=experience_warning, 
-            match_reasoning=match_reasoning)
+            match_reasoning=match_reasoning,user=user)
 
     except requests.RequestException as e:
         print(f"Error details: {e}")
@@ -238,7 +239,7 @@ def job_match_reasoning(job_id):
         reasoning = explain_match_score(
             user_skills_tuple=tuple(user_skills),
             user_experience=user.experience_level or "",
-            user_goal=user.carrer_goal or "",
+            user_goal=user.career_goal or "",
             job_title=job.get("jobTitle", ""),
             matching_tuple=tuple(matching),
             missing_tuple=tuple(missing)
@@ -293,7 +294,7 @@ def signup_page():
 
     if password != confirm_password:
         flash('Passwords do not match!','error')
-        return redirect(url_for('signup'))
+        return redirect(url_for('signup_page'))
         
     hashed_password = generate_password_hash(password)
     new_user = User(name= str(firstname) + " " + str(lastname) , email=email, password=hashed_password)
@@ -343,7 +344,7 @@ def courses_page():
             or search_course in str(c.get('skills', '')).lower()
         ]
 
-    return render_template("courses_page.html",courses=course_list,search_course=request.args.get('course', ''), total_results=len(course_list))
+    return render_template("courses_page.html",courses=course_list, search_course = request.args.get('courses', '').strip().lower(), total_results=len(course_list))
 
 
 @app.route('/upload_cv', methods=["GET", "POST"])
@@ -401,12 +402,12 @@ def upload_cv():
 
         elif action=="add_goals":
           goals_input=request.form.get("goals")
-          user.carrer_goal=goals_input
+          user.career_goal=goals_input
           db.session.commit()
           flash("carrer goal added", "success")
 
         elif action == "delete_goal":
-          user.carrer_goal = None
+          user.career_goal = None
           db.session.commit()
           flash("Career goal removed", "success")
 
@@ -421,7 +422,7 @@ def upload_cv():
 
 
 
-def extract_skills_from_description(text: str, skills: list[str]) -> list[str]:
+def extract_skills_from_description(text, skills):
     found = set()
     for skill in sorted(skills, key=len, reverse=True):
         s = skill.strip()
@@ -586,7 +587,7 @@ def reset_password(token):
     
         if password1 != password2: 
             flash('Passwords do not match', 'error')
-            return render_template('reset_password', token=token,email=email)
+            return render_template('reset_password.html', token=token,email=email)
 
         user = User.query.filter_by(email=email).first()
         if user:
@@ -599,56 +600,28 @@ def reset_password(token):
     return render_template('reset_password.html', token=token ,email=email)
     
 
-def allowed_file(filename: str) -> bool:   #checks if the uploaded file is a pdf, has to end with .pdf
+def allowed_file(filename):   #checks if the uploaded file is a pdf, has to end with .pdf
     return filename.lower().endswith('.pdf')
 
-def normalize_text(s: str) -> str: # converts text into lower case removing and unecessary spaces
-    s = (s or "").lower()
-    s = re.sub(r"\s+", " ", s).strip()
-    return s
+def normalize_text(x): # converts text into lower case removing and unecessary spaces
+    x = (x or "").lower()
+    x = re.sub(r"\s+", " ", x).strip()
+    return x
 
-def skill_overlap_score(user_skills: list[str], job_skills: list[str]) -> float:
-    userskill = {str(x).strip().lower() for x in user_skills if str(x).strip()}
-    jobskill = {str(x).strip().lower() for x in job_skills if str(x).strip()}
-    if not jobskill:
-        return 0.0
-    return (len(userskill & jobskill) / len(jobskill)) * 100.0
-
-def tfidf_cosine_score(user_profile_text, job_text):
-    if not user_profile_text or not job_text:
-        return 0.0
-
-    tfidf = TfidfVectorizer(stop_words="english")
-    X = tfidf.fit_transform([user_profile_text, job_text])
-
-    return cosine_similarity(X[0:1], X[1:2])[0][0] * 100
-
-def final_match_score(skill_score: float, cosine_score: float, user_skill_count: int = 0) -> int:
-    if user_skill_count >= 10:
-        w_skill, w_cos = 0.75, 0.25  
-    elif user_skill_count >= 5:
-        w_skill, w_cos = 0.60, 0.40   
-    elif user_skill_count >= 1:
-        w_skill, w_cos = 0.40, 0.60   
-    else:
-        w_skill, w_cos = 0.10, 0.90
-
-    return round(min(100.0, (w_skill * skill_score) + (w_cos * cosine_score)))
-
-def build_user_profile_text(user) -> str:
+def build_user_profile_text(user):
     skills = [us.skill.name for us in user.skills] if user else []
     parts = [
         " ".join(skills),
-        user.carrer_goal or "",
+        user.career_goal or "",
         user.experience_level or ""
     ]
     return " ".join([p for p in parts if p]).strip()
 
 
-def extract_experience_level(job_title: str) -> str:  #extracts experience level from job title according to corresponding words
+def extract_experience_level(job_title):  #extracts experience level from job title according to corresponding words
     title = (job_title or "").lower()
 
-    if re.search(r"\b(junior|trainee|entry|graduate|intern|apprentice)\b", title):
+    if re.search(r"\b(junior|trainee|entry|graduate|grad|intern|apprentice)\b", title):
         return "Junior"
 
     elif re.search(r"\b(senior|manager|lead|principal|director|head)\b", title):
@@ -659,13 +632,13 @@ def extract_experience_level(job_title: str) -> str:  #extracts experience level
     else:
         return "Not specified"
 
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=3600) # Uses ollama to output a reason explaining the user's suitability for the role , is also cached.
 def explain_match_score(user_skills_tuple, user_experience, user_goal, job_title, matching_tuple, missing_tuple):
     user_skills = list(user_skills_tuple)
     matching_skills = list(matching_tuple)
     missing_skills = list(missing_tuple)
 
-    prompt = f"""write 3-4 lines explaining why this is or isn't suitable for this user, be specific and tailored to the user and if it aligns to their experience level and career goal
+    prompt = f"""write a very brief paragraph max 6 lines explaining why this is or isn't suitable for this user, be specific and tailored to the user and if it aligns to their experience level and career goal, no labels !!! , just explanation
 
     User:
     - Skills: {', '.join(user_skills)}
@@ -675,7 +648,7 @@ def explain_match_score(user_skills_tuple, user_experience, user_goal, job_title
     Job: {job_title}
     Matching skills: {', '.join(matching_skills)}
     Missing skills: {', '.join(missing_skills)}  
-    no labels and make it seem like your a careers advisor"""
+    no labels and make it seem like your a careers advisor,make sure its just the reasoning nothing else"""
 
     try:
         response = ollama.chat(model='llama3.2:1b',messages=[{'role': 'user', 'content': prompt}],
@@ -689,13 +662,43 @@ def explain_match_score(user_skills_tuple, user_experience, user_goal, job_title
         print(f"Ollama error: {e}")
         return None
 
-@app.route('/logout')
+@app.route('/logout') # logout function
 def logout():
     session.pop('user',None)
     flash('Logged out','success')
     return redirect (url_for('home_page'))
 
+@app.route('/contact_us',methods=["GET", "POST"])
+def contact_us():
+    if request.method=="POST":
+        name= request.form.get("name")
+        email = request.form.get("email")
+        subject = request.form.get("subject")
+        message= request.form.get("message")
+        try:
+            msg = Message(
+                subject=f"Contact Form: {subject}",
+                recipients=[app.config['MAIL_USERNAME']]
+            )
 
+            msg.body = f"""
+            Name: {name} 
+            Email: {email}
+            Message:{message}"""
+
+            msg.reply_to = email
+            mail.send(msg)
+            flash("Form sent", "success")
+
+        except Exception as e:
+            flash(f"Error", "error")
+
+    return render_template("contact_us.html")
+
+
+@app.route('/about_us')
+def about_us():
+       return render_template('about_us.html')
 
 
 @cache.memoize(timeout=200)
@@ -709,15 +712,14 @@ def job_fetch(params_tuple):
 @cache.memoize(timeout=600)
 def fetch_job(job_id):
     response = requests.get(
-        f"{BASE_URL}/jobs/{job_id}",
-        auth=(API_KEY, ""),
+        f"{BASE_URL}/jobs/{job_id}",auth=(API_KEY, ""),
         timeout=10
     )
     response.raise_for_status()
     return response.json()
 
 @cache.memoize(timeout=3600)
-def load_skills(path: str) -> list[str]:
+def load_skills(path):
     skills = []
     with open(path, newline="", encoding="utf-8") as f:
         reader = csv.reader(f)
@@ -730,15 +732,14 @@ def load_skills(path: str) -> list[str]:
     return skills
 
 @cache.memoize(timeout=200)
-def get_scored_jobs(params_tuple, user_skills_tuple, user_profile_text, user_experience, show_all,user_skill_count=0,user_goal=""):
-    params = dict(params_tuple)
+def get_scored_jobs(params_tuple, user_skills_tuple, user_profile_text, user_experience, show_all, user_goal="",search_keywords=""):
     data = job_fetch(params_tuple)
-    all_jobs = data.get("results", [])[:50]
+    params = dict(params_tuple)
 
 
     skills_list = load_skills("csv/skills.csv")
 
-    if user_goal and not show_all:
+    if user_goal and not show_all and not search_keywords:
         all_jobs = fetch_jobs(user_goal, user_experience, params)
     else:
         data = job_fetch(params_tuple)
@@ -750,14 +751,12 @@ def get_scored_jobs(params_tuple, user_skills_tuple, user_profile_text, user_exp
     user_skills = list(user_skills_tuple)
 
     for job in all_jobs:
-        desc = job.get("jobDescription", "") or ""
-        job_desc_norm = " ".join(str(desc).lower().split())
+        job_desc = job.get("jobDescription", "") or ""
+        job_desc_norm = " ".join(str(job_desc).lower().split())
         job_skills = extract_skills_from_description(job_desc_norm, skills_list)
 
-        skill_score = skill_overlap_score(user_skills, job_skills)
-        cosine_score = tfidf_cosine_score(user_profile_text, desc)
 
-        job["match_score"] = final_match_score(skill_score, cosine_score, user_skill_count)
+        job["match_score"] = calculate_match(user_skills, user_profile_text, job_skills, job_desc)
         job["experience_level"] = extract_experience_level(job.get("jobTitle", ""))
 
     all_jobs.sort(key=lambda j: j.get("match_score", 0), reverse=True)
@@ -778,12 +777,10 @@ def get_scored_jobs(params_tuple, user_skills_tuple, user_profile_text, user_exp
 
     return all_jobs
 
-@cache.memoize(timeout=3600)
-def load_courses_df():
-    return pd.read_csv('csv/courses.csv')
 
-@cache.memoize(timeout=1800)
-def get_synonyms(user_goal: str)->list[str]:
+
+@cache.memoize(timeout=1800) # ollama is used to generate 3 job titles similar to the career goal outlined by the user, allows for more recommendations
+def get_synonyms(user_goal):
     prompt=f""""Give me 3 job titles that are similar to  "{user_goal}"Explicity return only a JSON array of strings,nothing else, no explanation,no label just job titles!"""
     try:
         response = ollama.chat(model='llama3.2:1b',messages=[{'role': 'user', 'content': prompt}],
@@ -832,48 +829,58 @@ def fetch_jobs(user_goal, user_experience, extra_params):
     return all_jobs
 
 
-
-
-
 @cache.memoize(timeout=200)
-def search_similar_jobs(keywords: str, results_to_take: int) -> list[dict]:
-    params = {
-        "keywords": keywords or "",
-        "resultsToTake": results_to_take,
-    }
-    response = requests.get(
-        f"{BASE_URL}/search",
-        params=params,
-        auth=(API_KEY, ""),
-        timeout=6,  
-    )
-    response.raise_for_status()
-    return response.json().get("results", [])[:results_to_take]
-
-
-def get_similar_jobs(job_id: int, job_title: str) -> list[dict]:
+def get_similar_jobs(job_id, job_title):
     try:
-        results = search_similar_jobs(job_title, 6)
-        return [j for j in results if j.get("jobId") != job_id][:5]
-    except Exception as e:
-        print(f"Similar jobs error: {e}")
-        return []
+        results = requests.get(
+            f"{BASE_URL}/search",
+            params={"keywords": job_title or "", "res": 6},
+            auth=(API_KEY, ""),timeout=6).json().get("results", [])
 
+        return [j for j in results if j.get("jobId") != job_id][:6] #returns 4 similar jobs ,different to the one the user is viewing
+
+    except Exception as e:
+        print(f"error: {e}")
+        return []
 
 @cache.memoize(timeout=3600)
 def get_courses(missing_skills_tuple):
     missing_skills = list(missing_skills_tuple)
     try:
-        df = load_courses_df()
+        df = pd.read_csv('csv/courses.csv')
         matches = df['skills'].apply(course_matches, args=(missing_skills[:10],))
         return df[matches].head(5).to_dict('records')
     except Exception as e:
         print(f"Course error: {e}")
         return []
+
 @app.errorhandler(404)
 def not_found(e):
     return render_template('404.html'), 404
 
+@cache.memoize(timeout=200)
+def skill_overlap_score(user_skills, job_skills):
+    userskill = {str(x).strip().lower() for x in user_skills if str(x).strip()}
+    jobskill = {str(x).strip().lower() for x in job_skills if str(x).strip()}
+    if not jobskill:
+        return 0.0
+    return (len(userskill & jobskill) / len(jobskill)) * 100.0
+
+def tfidf_cosine_score(user_profile_text, job_text):
+    if not user_profile_text or not job_text:
+        return 0.0
+
+    tfidf = TfidfVectorizer(stop_words="english")
+    X = tfidf.fit_transform([user_profile_text, job_text])
+
+    return cosine_similarity(X[0:1], X[1:2])[0][0] * 100
+
+def calculate_match(user_skills, user_profile_text, job_skills, job_desc):
+    skill_score = skill_overlap_score(user_skills, job_skills)
+    cosine_score = tfidf_cosine_score(user_profile_text, job_desc)
+    final_score = round((0.7 * skill_score) + (0.3 * cosine_score), 2)
+
+    return final_score
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ job.jobTitle }} - Seeker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='job_details.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 
 <body>
@@ -43,6 +45,7 @@
 
     {% if match_result %}
     <div class="match-card">
+        {% if user and user.skills %}
         <div class="match-reasoning">
             <p id="match-reasoning-text">
                 {% if match_reasoning %}
@@ -52,6 +55,9 @@
                 {% endif %}
             </p>
         </div>
+        {%else%}
+        Compete your profile to view AI reasoning
+        {% endif %}
 
         <h3>Match Analysis</h3>
         <p class="match-score-label">
@@ -167,6 +173,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 });
 </script>
 {% endif %}
-
+{%include 'footer.html'%}
 </body>
 </html>

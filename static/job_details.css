@@ -173,7 +173,7 @@ p {
     background: #1558c0;
 }
 
-/* LOGIN PROMPT */
+
 
 .login-prompt {
     background: #f1f3f4;
@@ -193,13 +193,13 @@ p {
     text-decoration: underline;
 }
 
-/* DESCRIPTION */
+
 
 .description {
     margin-top: 10px;
 }
 
-/* SIMILAR JOBS */
+
 
 .similar-jobs {
     margin-top: 30px;
@@ -241,13 +241,13 @@ p {
     background: #f3f4f6;
 }
 
-/* APPLY BUTTON */
+
 
 .apply-btn {
     display: inline-block;
     margin-top: 24px;
     padding: 10px 14px;
-    background: #34a853; /* Google green */
+    background: #3aaf59; 
     color: white;
     text-decoration: none;
     border-radius: 6px;
@@ -258,7 +258,7 @@ p {
     background: #2c8c46;
 }
 
-/* FLASH */
+
 
 .flash-container {
     position: fixed;

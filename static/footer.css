@@ -1,0 +1,42 @@
+.footer {
+    background: #f8f9fa;
+    padding: 30px 20px;
+    margin-top: 40px;
+    border-top: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.footer-container {
+    max-width: 900px;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.footer h4 {
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #333;
+}
+
+.footer a {
+    color: #666;             
+    display: block;          
+    margin-bottom: 6px;
+    background: none;       
+    border: none;            
+    padding: 0;    
+    text-decoration: none;         
+}
+
+.footer a:hover {
+    color: #000;
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 20px;
+    color: #777;
+    font-size: 13px;
+}

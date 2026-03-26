@@ -3,37 +3,68 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Account- Seeker</title>
+  <title>Account - Seeker</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='account_page.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
-
 <body>
-  {%include 'navbar.html'%}
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div class="flash-container">
-      {% for category, message in messages %}
-        <div class="flash {{ category }}">
-          {{ message }}
+  {% include 'navbar.html' %}
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="account-page">
+    <div class="account-card">
+      <h1>Account Details</h1>
+      <p class="subtitle">Manage your profile information</p>
+
+      <div class="account-info">
+        <div class="info-row">
+          <span class="label">Email</span>
+          <span class="value">{{ user.email }}</span>
         </div>
-      {% endfor %}
+
+        <div class="info-row">
+          <span class="label">Name</span>
+          <span class="value">{{ user.name }}</span>
+        </div>
+
+        <div class="info-row">
+          <span class="label">Skills</span>
+          <span class="value">
+            {% for us in user.skills %}
+              <span class="skill-badge">{{ us.skill.name }}</span>
+            {% endfor %}
+          </span>
+        </div>
+
+        <div class="info-row">
+          <span class="label">Experience Level</span>
+          <span class="value">{{ user.experience_level }}</span>
+        </div>
+
+        <div class="info-row">
+          <span class="label">Career Goal</span>
+          <span class="value">{{ user.career_goal }}</span>
+        </div>
+      </div>
+
+      <div class="account-actions">
+        <a href="{{ url_for('edit_account') }}" class="btn">Edit Profile</a>
+      </div>
     </div>
-  {% endif %}
-{% endwith %}
-<h1>Account Details</h1>
-
-<p><strong>Your Email:</strong>{{ user.email}}</p>
-<p><strong>Name:</strong>{{ user.name}}</p>
-<p><strong>Your Skills:</strong>
-  {% for us in user.skills %}
-    {{ us.skill.name }}{% if not loop.last %}, {% endif %}
-  {% endfor %}
-</p>
-<p><strong>Your experience level:</strong>{{ user.experience_level}}</p>
-<p><strong>Your career goal:</strong>{{ user.carrer_goal}}</p>
-
-<a href="{{ url_for('edit_account') }}" class="btn">
-  Edit
-</a>
+  </div>
+  {%include 'footer.html'%}
 </body>
+</html>

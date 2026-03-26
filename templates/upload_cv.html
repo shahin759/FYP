@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seeker - Job Listings</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='upload_cv.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 
 <body>
@@ -62,12 +64,12 @@
       </div>
     </form>
     
-    {% if user.carrer_goal %}
+    {% if user.career_goal %}
     <div class="goal-item">
-      {{ user.carrer_goal }}
+      {{ user.career_goal }}
       <form method="POST" action="{{ url_for('upload_cv') }}" class="delete-form">
         <input type="hidden" name="action" value="delete_goal">
-        <input type="hidden" name="carrer_goal" value="{{ user.carrer_goal }}">
+        <input type="hidden" name="career_goal" value="{{ user.career_goal }}">
         <button type="submit" class="delete-btn">✕</button>
       </form>
     </div>
@@ -90,6 +92,6 @@
     </div>
   </form>
   <p>{{user.experience_level}}</p>
-  
+  {%include 'footer.html'%}
 </body>
 </html>

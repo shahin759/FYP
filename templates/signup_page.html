@@ -7,6 +7,8 @@
     <link rel="icon" type="image/png"
     href="{{ url_for('static', filename='images/logo.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='signup_page.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 
 <body>
@@ -40,4 +42,6 @@
 </form>
 </div>
 
+{%include 'footer.html'%}
 </body>
+</html>

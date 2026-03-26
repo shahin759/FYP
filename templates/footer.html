@@ -1,0 +1,56 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='footer.css') }}">
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</head>
+<footer class="footer">
+
+    <div class="footer-container">
+  
+
+    <div class="footer-column">
+        <h3>General</h3>
+        <a href="{{ url_for('signup_page') }}">Sign Up</a>
+        <a href="{{ url_for('about_us') }}">About</a>
+        <a href="{{ url_for('contact_us') }}">Help Center</a>
+      </div>
+   
+
+      <div class="footer-column">
+        <h3>Platform</h3>
+        <ul>
+            <a href="{{ url_for('account_page') }}">My Profile</a>
+            <a href="{{ url_for('courses_page') }}">View courses</a>
+        </ul>
+      </div>
+  
+    
+      
+  
+
+      <div class="footer-column">
+        <h3>Explore</h3>
+        <ul>
+          <a>Top Skills</a>
+          <a>Popular Careers</a>
+         
+        </ul>
+      </div>
+  
+
+      <div class="footer-column">
+        <h3>Legal</h3>
+        <ul>
+          <a>Privacy Policy</a>
+          <a>Terms of Use</a>
+        </ul>
+      </div>
+  
+    </div>
+  
+    <div class="footer-bottom">
+      <p>Seeker 2026</p>
+    </div>
+  
+  </footer>

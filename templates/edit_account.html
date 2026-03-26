@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seeker - Job Listings</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='edit_account.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 
 <body>
@@ -13,8 +15,7 @@
   {% if messages %}
     <div class="flash-container">
       {% for category, message in messages %}
-        <div class="flash {{ category }}">
-          {{ message }}
+        <div class="flash {{ category }}">{{ message }}
         </div>
       {% endfor %}
     </div>
@@ -38,6 +39,7 @@
   <input type="password" id="password" name="confirm_password" class="entrybox" placeholder="Confirm Password" required>
   <button type="submit" class="loged">Update password</button>
 </form>
+{%include 'footer.html'%}
 </body>
 
 
