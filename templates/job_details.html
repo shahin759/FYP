@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='job_details.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
     <script src="{{ url_for('static', filename='app.js') }}"></script>
+
 </head>
 
 <body>
@@ -21,10 +22,25 @@
     </div>
     {% endif %}
 {% endwith %}
+{% if session.user and user %}
+ {% if not user.career_goal or not user.skills or not user.experience_level%}
+ <div class="profile-incomplete">
+   Your profile is incomplete — <a href="{{ url_for('upload_cv') }}">complete your profile</a> for personalised job recommendations and match scores.
+</div>
+{% endif %}
+
 
 <div class="job_details">
     <a href="{{ url_for('home_page') }}" class="back-btn">&#8592; Back to Jobs</a>
+    
 
+{% if session.user %}
+<button class="save-job-btn" data-job-id="{{ job.jobId }}">
+    {% if is_saved %}Unsave Job{% else %}Save Job{% endif %}
+</button>
+{% else %}
+<a href="{{ url_for('login_page') }}">Login to save job</a>
+{% endif %}
     {% if experience_warning %}
     <div class="experience-warning">
         &#9888; {{ experience_warning }}
@@ -43,9 +59,9 @@
         </div>
     </div>
 
-    {% if match_result %}
+    {% if match_result and user and user.skills and user.career_goal and user.experience_level %}
     <div class="match-card">
-        {% if user and user.skills %}
+      
         <div class="match-reasoning">
             <p id="match-reasoning-text">
                 {% if match_reasoning %}
@@ -152,27 +168,6 @@
     <a href="{{ job.jobUrl }}" target="_blank" class="apply-btn">Apply on Reed &#8594;</a>
 </div>
 
-{% if match_result %}
-<script>
-document.addEventListener("DOMContentLoaded", async function () {
-    const reasoning = document.getElementById("match-reasoning-text");
-    if (!reasoning) return;
-
-    try {
-        const response = await fetch("/job/{{ job.jobId }}/match_reasoning");
-        const data = await response.json();
-
-        if (response.ok && data.reasoning) {
-            reasoning.textContent = data.reasoning;
-        } else {
-            reasoning.textContent = "Could not generate reasoning.";
-        }
-    } catch (error) {
-        reasoning.textContent = "Could not generate reasoning.";
-    }
-});
-</script>
-{% endif %}
 {%include 'footer.html'%}
 </body>
 </html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saved Jobs - Seeker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='saved_jobs.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</head>
+
+<body>
+  {% include 'navbar.html' %}
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="saved-jobs-container">
+    <h1>Your Saved Jobs</h1>
+
+    {% if saved_jobs %}
+      <div class="saved-jobs-grid">
+        {% for saved in saved_jobs %}
+          <div class="job-card">
+
+           
+              <h2>{{ saved.job_title or "Untitled Role" }}</h2>
+              <span class="saved-date">Date saved: {{ saved.saved_date.strftime('%d %b %Y') }}</span>
+            
+
+            
+              <p><strong>Employer:</strong> {{ saved.employer_name or "Not specified" }}</p>
+
+              {% if saved.min_salary and saved.max_salary %}
+              <p><strong>Salary:</strong> £{{ "{:,}".format(saved.min_salary|int) }} - £{{ "{:,}".format(saved.max_salary|int) }}</p>
+              {% else %}
+              <p><strong>Salary:</strong> Not specified</p>
+              {% endif %}
+            </div>
+            
+
+            <div class="actions">
+              <a href="{{ url_for('job_details', job_id=saved.job_id) }}" class="view-btn">
+                View Job
+              </a>
+              {% if saved.job_url %}
+              <a href="{{ saved.job_url }}" target="_blank" class="apply-btn">Apply on Reed </a>
+              {% endif %}
+              <form action="{{ url_for('saved_jobs') }}" method="POST">
+                <input type="hidden" name="job_id" value="{{ saved.job_id }}">
+                <button type="submit" class="remove-btn">Remove</button>
+            </form>
+            </div>
+
+          </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+  
+<p>No jobs saved.</p>
+<a href="{{ url_for('home_page') }}" class="browse-btn">Browse Jobs</a>
+{% endif %}
+</div>
+
+  {% include 'footer.html' %}
+</body>
+</html>

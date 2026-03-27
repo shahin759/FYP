@@ -20,7 +20,7 @@ app = Flask(__name__)
 
 app.secret_key = "12345678"
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///user.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///seeker.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -68,16 +68,34 @@ class UserSkill(db.Model):  #user skill table
     skill = db.relationship("Skill", back_populates="users")
 
     __table_args__ = (
-        db.UniqueConstraint("user_id", "skill_id", name="uq_user_skill"),
+        db.UniqueConstraint("user_id", "skill_id", name="unique_user_skill"),
     )
 
-    def __repr__(self):
-        return f'<User {self.email}>'
+class SavedJobs(db.Model): #saved jobs table
+    __tablename__ = "saved_jobs"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id=db.Column(db.Integer,db.ForeignKey("user.id"), nullable=False)
+    job_id = db.Column(db.Integer, nullable=False)
+    job_title = db.Column(db.String(200))
+    employer_name = db.Column(db.String(200))
+    min_salary=db.Column(db.String(200))
+    max_salary=db.Column(db.String(200))
+    job_description=db.Column(db.Text)
+    job_url=db.Column(db.String(200))
+    saved_date=db.Column(db.DateTime, default=db.func.now())
+    user = db.relationship("User", backref="saved_jobs")
+
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "job_id", name="unique_user_saved_jobs"),
+    )
+
+def __repr__(self):
+    return f'<User {self.email}>'
 
 with app.app_context():
     db.create_all()
  
-@cache.memoize(timeout=3600)
+
 @app.route("/")  # home page, showcasing jobs
 def home_page():
     search_keywords = request.args.get('keywords', '')
@@ -134,7 +152,7 @@ def home_page():
         jobs=jobs,search_keywords=search_keywords,
         location=location,show_all=show_all,
         total_results=len(filtered),page=page,
-        has_more=has_more,title=title
+        has_more=has_more,title=title,user=user
     )
 
 @app.route("/job/<int:job_id>")
@@ -153,12 +171,14 @@ def job_details(job_id):
         recommended_courses = []
         missing_skills_tuple= None
         user=None
+        is_saved = False
 
         
         if "user" in session:
             user = User.query.filter_by(email=session["user"]).first()
             if user:
                 user_skills = [us.skill.name for us in user.skills]
+                is_saved = SavedJobs.query.filter_by(user_id=user.id, job_id=job_id).first() is not None
             
 
                 user_set = {s.lower().strip() for s in user_skills}
@@ -204,7 +224,7 @@ def job_details(job_id):
             user_skills=user_skills,match_result=match_result, 
             recommended_courses=recommended_courses,similar_jobs=similar_jobs,
             job_experience=job_experience,experience_warning=experience_warning, 
-            match_reasoning=match_reasoning,user=user)
+            match_reasoning=match_reasoning,user=user,is_saved=is_saved)
 
     except requests.RequestException as e:
         print(f"Error details: {e}")
@@ -249,6 +269,7 @@ def job_match_reasoning(job_id):
 
     except Exception as e:
         print(f"Reasoning error: {e}")
+
         return jsonify({"reasoning": None, "error": "Could not generate reasoning"}), 500
 
 def course_matches(course_skills,missing_skills):
@@ -277,6 +298,83 @@ def login_page():
             return redirect(url_for('login_page'))
     
  return render_template('login_page.html')
+
+@app.route("/save_job/<int:job_id>", methods=["POST"])
+def save_job(job_id):
+    if "user" not in session:
+        return jsonify({"reasoning": None, "error": "Not logged in"}), 401
+
+    user = User.query.filter_by(email=session["user"]).first()
+    if not user:
+        return jsonify({"reasoning": None, "error": "User not found"}), 404
+    
+    exists = SavedJobs.query.filter_by(user_id=user.id, job_id=job_id).first()
+    
+    if exists:
+        db.session.delete(exists)
+        db.session.commit()
+        return jsonify ({"status": "unsaved"})
+    
+    try:
+        job=fetch_job(job_id)
+        saved=SavedJobs(user_id=user.id ,job_id=job_id,job_title=job.get("jobTitle"),
+        job_description=job.get("jobDescription"),employer_name=job.get("employerName"),min_salary=job.get("minimumSalary")
+    ,max_salary=job.get("maximumSalary"),job_url=job.get("url"))
+        db.session.add(saved)
+        db.session.commit()
+        return jsonify({"status": "saved"})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+        
+
+@app.route("/saved_jobs", methods=["GET", "POST"])
+def saved_jobs():
+    if "user" not in session:
+        flash("Login first", "error")
+        return redirect(url_for("login_page"))
+
+    user = User.query.filter_by(email=session["user"]).first()
+    if not user:
+        flash("User not found", "error")
+        return redirect(url_for("login_page"))
+
+    if request.method == "POST":
+        job_id = request.form.get("job_id")
+        saved = SavedJobs.query.filter_by(user_id=user.id, job_id=job_id).first()
+        if saved:
+            db.session.delete(saved)
+            db.session.commit()
+            flash("Job removed", "success")
+        return redirect(url_for("saved_jobs"))
+
+    saved = SavedJobs.query.filter_by(user_id=user.id)\
+        .order_by(SavedJobs.saved_date.desc()).all()
+
+    return render_template("saved_jobs.html", saved_jobs=saved)
+
+def saved_jobs_profile(user):
+    saved_jobs=SavedJobs.query.filter_by(user_id=user.id).all()
+    if not saved_jobs:
+        return ""
+    
+    all_text=[]
+    saved_jobs_skills=load_skills("csv/skills.csv")
+    inferred_skills=set()
+
+    for saved in saved_jobs:
+        if saved.job_description:
+            all_text.append(saved.job_description)
+            desc_norm = " ".join(saved.job_description.lower().split())
+            inferred_skills.update(
+                extract_skills_from_description(desc_norm, saved_jobs_skills)
+            )
+        if saved.job_title:
+            all_text.append(saved.job_title)
+
+    return (" ".join(all_text) + " " + " ".join(inferred_skills)).strip()
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup_page():

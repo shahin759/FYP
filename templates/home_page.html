@@ -24,6 +24,7 @@
 {% endwith %}
  
 
+
   {% if title %}
   <h2>{{ title }}</h2>
 {% else %}
@@ -35,6 +36,13 @@
       </p>
   </div>
 {% endif %} 
+
+{% if session.user and user %}
+ {% if not user.career_goal or not user.skills or not user.experience_level%}
+ <div class="profile-incomplete">
+   Your profile is incomplete — <a href="{{ url_for('upload_cv') }}">complete your profile</a> for personalised job recommendations and match scores.
+</div>
+{% endif %}
 
 
 <div class = "jobs">
@@ -123,6 +131,7 @@
   <input type="hidden" name="page" value="{{ page + 1 }}">
   <button type="submit" class="more">View more jobs</button>
 </form>
+{% endif %}
 {%include 'footer.html'%}
 </body>
 </html>
