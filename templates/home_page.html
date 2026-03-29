@@ -38,10 +38,11 @@
 {% endif %} 
 
 {% if session.user and user %}
- {% if not user.career_goal or not user.skills or not user.experience_level%}
- <div class="profile-incomplete">
-   Your profile is incomplete — <a href="{{ url_for('upload_cv') }}">complete your profile</a> for personalised job recommendations and match scores.
-</div>
+  {% if not user.career_goal or not user.skills or not user.experience_level %}
+  <div class="profile-incomplete">
+    Your profile is incomplete — <a href="{{ url_for('upload_cv') }}">complete your profile</a> for personalised job recommendations and match scores.
+  </div>
+  {% endif %}
 {% endif %}
 
 
@@ -53,7 +54,7 @@
 
 
 
-{% if jobs%}
+{% if jobs %}
 <div class="search">
   <form method="GET" action="{{ url_for('home_page') }}" class="search-form">
     <div class="search-inputs">
@@ -61,77 +62,62 @@
         <input type="text" name="keywords" placeholder="Search for jobs or keywords"
                value="{{ search_keywords or '' }}" class="search-input">
       </div>
-
       <div class="search-field">
         <input type="text" name="location" placeholder="Enter location"
                value="{{ location or '' }}" class="search-input">
       </div>
-
       <button type="submit" class="search-button">Search</button>
-      {% if search_keyword or location %}
-        <a href="{{ url_for('home_page') }}" class="clear-btn">Clear</a>
-      {% endif %}
-      {% if session.get('user') %}
 
-<form method="GET" action="/">
+      {% endif %}
+    </div>
+  </form>
+
+  {% if session.get('user') %}
+  <form method="GET" action="{{ url_for('home_page') }}">
     <input type="hidden" name="keywords" value="{{ search_keywords }}">
     <input type="hidden" name="location" value="{{ location }}">
-    
     {% if show_all %}
-        <input type="hidden" name="all" value="1">
-        <button type="submit" name="all" value="" class="toggle-btn">
-            Show Recommended Jobs
-        </button>
+      <button type="submit" name="all" value="" class="toggle-btn">Show Recommended Jobs</button>
     {% else %}
-        <button type="submit" name="all" value="1" class="toggle-btn">
-            Show All Jobs
-        </button>
+      <button type="submit" name="all" value="1" class="toggle-btn">Show All Jobs</button>
     {% endif %}
-</form>
-{% endif %}
-    </div>
-
   </form>
-   
-
+  {% endif %}
 </div>
-<h2>{{title}}</h2>
+
 
 <ul>
- {%for job in jobs%}
- <li>
-  <h2>{{ job.get('jobTitle', 'No Title') }}</h2>
-  <p>Location:{{ job.get('locationName', 'No location') }}</p>
-  <p>Employer:{{ job.get('employerName', 'No employer') }}</p>
-{% if job.experience_level and job.experience_level != 'Not specified' %}
-  <p>Experience level: {{ job.experience_level }}</p>
-{% endif %}
-{% if "user" in session %}
-  <p><strong>View job details to see your match score</strong></p>
-{% endif %}
-
-{% if job.get('minimumSalary') and job.get('maximumSalary') %}
-  <p>Salary: £{{ "{:,}".format(job.get('minimumSalary')) }} - £{{ "{:,}".format(job.get('maximumSalary')) }}</p>
-{% else %}
-  <p>Salary: Not listed</p>
-{% endif %}
-
-  <a href="{{ url_for('job_details', job_id=job['jobId']) }}">
-    <button type="button" class="loged">View Job Details</button>
-  </a>
-</li>
-{% endfor %}
+  {% for job in jobs %}
+  <li>
+    <h2>{{ job.get('jobTitle', 'No Title') }}</h2>
+    <p>Location: {{ job.get('locationName', 'No location') }}</p>
+    <p>Employer: {{ job.get('employerName', 'No employer') }}</p>
+    {% if job.experience_level and job.experience_level != 'Not specified' %}
+      <p>Experience level: {{ job.experience_level }}</p>
+    {% endif %}
+    {% if "user" in session %}
+      <p><strong>View job details to see your match score</strong></p>
+    {% endif %}
+    {% if job.get('minimumSalary') and job.get('maximumSalary') %}
+      <p>Salary: £{{ "{:,}".format(job.get('minimumSalary')) }} - £{{ "{:,}".format(job.get('maximumSalary')) }}</p>
+    {% else %}
+      <p>Salary: Not listed</p>
+    {% endif %}
+    <a href="{{ url_for('job_details', job_id=job['jobId']) }}">
+      <button type="button" class="loged">View Job Details</button>
+    </a>
+  </li>
+  {% else %}
 </ul>
-{% else %}
 <p>No jobs available at the moment.</p>
-{% endif %}
+{% endfor %}
 <form method="GET" action="{{ url_for('home_page') }}">
   <input type="hidden" name="keywords" value="{{ search_keywords }}">
   <input type="hidden" name="location" value="{{ location }}">
   <input type="hidden" name="page" value="{{ page + 1 }}">
   <button type="submit" class="more">View more jobs</button>
 </form>
-{% endif %}
+
 {%include 'footer.html'%}
 </body>
 </html>

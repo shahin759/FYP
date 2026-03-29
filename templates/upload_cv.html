@@ -49,10 +49,15 @@
           <input type="hidden" name="action" value="delete_skill">
           <input type="hidden" name="skill_id" value="{{ us.skill.id }}">
           <button type="submit" class="delete-btn">✕</button>
+          
         </form>
       </li>
     {% endfor %}
   </ul>
+  <form method="POST" action="{{ url_for('upload_cv') }}" class="delete-all-form">
+    <input type="hidden" name="action" value="delete_all">
+    <button type="submit" class="delete-all-btn">Remove all</button>
+  </form>
 
   <form method="POST" action="{{ url_for('upload_cv') }}">
     <input type="hidden" name="action" value="add_goals">

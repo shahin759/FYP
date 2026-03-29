@@ -109,7 +109,8 @@ def home_page():
         params['keywords'] = search_keywords
     if location:
         params['locationName'] = location
-
+     
+    user= None
     user_skills = []
     user_profile_text = ""
     user_experience = ""
@@ -127,12 +128,16 @@ def home_page():
 
     if "user" in session and user_goal and not search_keywords and not show_all:
         params['keywords'] = user_goal
+
+    saved_profile_text = ""
+    if "user" in session and user:
+        saved_profile_text = saved_jobs_profile(user)
  
     try:
         filtered = get_scored_jobs(
              tuple(sorted(params.items())),tuple(user_skills),
              user_profile_text,user_experience,
-             show_all,user_goal,search_keywords
+             show_all,user_goal,search_keywords,saved_profile_text
         )
 
     except Exception as e:
@@ -467,16 +472,18 @@ def upload_cv():
                 flash("Enter a skill", "error")
                 return redirect(url_for('upload_cv'))
 
+            valid_skill = [s.lower() for s in load_skills("csv/skills.csv")]
+            if skill_input not in valid_skill:
+                flash(f"'{skill_input}' is not a valid skill, please enter a valid skill", "error")
+                return redirect(url_for('upload_cv'))
+
             skill = Skill.query.filter_by(name=skill_input).first()
             if not skill:
                 skill = Skill(name=skill_input)
                 db.session.add(skill)
                 db.session.flush()
 
-            exists = UserSkill.query.filter_by(
-                user_id=user.id,
-                skill_id=skill.id
-            ).first()
+            exists = UserSkill.query.filter_by(user_id=user.id,skill_id=skill.id).first()
 
             if exists:
                 flash('You already added that skill', 'info')
@@ -488,10 +495,7 @@ def upload_cv():
       
         elif action == "delete_skill":
             skill_id = request.form.get("skill_id")
-            link = UserSkill.query.filter_by(
-                user_id=user.id,
-                skill_id=skill_id
-            ).first()
+            link = UserSkill.query.filter_by(user_id=user.id,skill_id=skill_id).first()
 
             if link:
                 db.session.delete(link)
@@ -508,6 +512,12 @@ def upload_cv():
           user.career_goal = None
           db.session.commit()
           flash("Career goal removed", "success")
+        
+        elif action=="delete_all":
+          UserSkill.query.filter_by(user_id=user.id).delete()
+          db.session.commit()
+          flash("All skills removed", "success")
+
 
         elif action=="save_experience":
             experience=request.form.get("experience")
@@ -830,7 +840,7 @@ def load_skills(path):
     return skills
 
 @cache.memoize(timeout=200)
-def get_scored_jobs(params_tuple, user_skills_tuple, user_profile_text, user_experience, show_all, user_goal="",search_keywords=""):
+def get_scored_jobs(params_tuple, user_skills_tuple, user_profile_text, user_experience, show_all, user_goal="",search_keywords="",saved_profile_text=""):
     data = job_fetch(params_tuple)
     params = dict(params_tuple)
 
@@ -852,9 +862,10 @@ def get_scored_jobs(params_tuple, user_skills_tuple, user_profile_text, user_exp
         job_desc = job.get("jobDescription", "") or ""
         job_desc_norm = " ".join(str(job_desc).lower().split())
         job_skills = extract_skills_from_description(job_desc_norm, skills_list)
+ 
 
 
-        job["match_score"] = calculate_match(user_skills, user_profile_text, job_skills, job_desc)
+        job["match_score"] = calculate_match(user_skills, user_profile_text, job_skills, job_desc,saved_profile_text)
         job["experience_level"] = extract_experience_level(job.get("jobTitle", ""))
 
     all_jobs.sort(key=lambda j: j.get("match_score", 0), reverse=True)
@@ -973,12 +984,14 @@ def tfidf_cosine_score(user_profile_text, job_text):
 
     return cosine_similarity(X[0:1], X[1:2])[0][0] * 100
 
-def calculate_match(user_skills, user_profile_text, job_skills, job_desc):
+def calculate_match(user_skills, user_profile_text, job_skills, job_desc,saved_profile_text=""):
     skill_score = skill_overlap_score(user_skills, job_skills)
     cosine_score = tfidf_cosine_score(user_profile_text, job_desc)
-    final_score = round((0.7 * skill_score) + (0.3 * cosine_score), 2)
-
-    return final_score
+    if saved_profile_text:
+        saved_score = tfidf_cosine_score(saved_profile_text, job_desc)
+        return round((0.5 * skill_score) + (0.25 * cosine_score) + (0.25 * saved_score), 2)
+    
+    return round((0.7 * skill_score) + (0.3 * cosine_score), 2)
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -74,7 +74,13 @@
         {%else%}
         Compete your profile to view AI reasoning
         {% endif %}
-
+        
+    {% if match_result %}
+        {% if user.skills|length < 7 %}
+        <div class="profile-incomplete">
+            Add at least 7 skills to your <a href="{{ url_for('upload_cv') }}">profile</a> to view your match score.
+        </div>
+        {% else %}
         <h3>Match Analysis</h3>
         <p class="match-score-label">
             Match Score: <strong>{{ match_result.score }}%</strong>
@@ -83,14 +89,15 @@
             <div class="match-bar-fill" style="width: {{ match_result.score }}%; background: {% if match_result.score >= 60 %}#4CAF50{% elif match_result.score >= 30 %}#FF9800{% else %}#9E9E9E{% endif %};"></div>
         </div>
         <p>You match <strong>{{ match_result.total_matching }}</strong> out of <strong>{{ match_result.job_total_skills }}</strong> required skills</p>
-
+        {% endif %}
+    {% endif %}
         {% if match_result.matching_skills %}
         <div class="skill-section">
             <h4>Skills You Have ({{ match_result.matching_skills|length }})</h4>
             <p>{{ match_result.matching_skills | join(', ') }}</p>
         </div>
         {% endif %}
-
+    
         {% if match_result.missing_skills %}
         <div class="skill-section missing">
             <h4>Skills to Develop ({{ match_result.missing_skills|length }})</h4>
