@@ -104,6 +104,7 @@ def home_page():
     show_all = request.args.get('all') == '1'
     per_page = 20
 
+
     params = {}
     if search_keywords:
         params['keywords'] = search_keywords
@@ -125,19 +126,16 @@ def home_page():
             user_goal = (user.career_goal or "").lower()
             user_profile_text = build_user_profile_text(user)
             user_skill_count = len(user_skills)
+            
 
     if "user" in session and user_goal and not search_keywords and not show_all:
         params['keywords'] = user_goal
-
-    saved_profile_text = ""
-    if "user" in session and user:
-        saved_profile_text = saved_jobs_profile(user)
  
     try:
         filtered = get_scored_jobs(
-             tuple(sorted(params.items())),tuple(user_skills),
+             tuple(sorted(params.items())),user,tuple(user_skills),
              user_profile_text,user_experience,
-             show_all,user_goal,search_keywords,saved_profile_text
+             show_all,user_goal,search_keywords
         )
 
     except Exception as e:
@@ -151,13 +149,16 @@ def home_page():
     end = page * per_page
     jobs = filtered[:end]
     has_more = len(filtered) > end
+    saved_job_ids = []
+    if user:
+        saved_job_ids = [s.job_id for s in SavedJobs.query.filter_by(user_id=user.id).all()]
 
     return render_template(
         "home_page.html",
         jobs=jobs,search_keywords=search_keywords,
         location=location,show_all=show_all,
         total_results=len(filtered),page=page,
-        has_more=has_more,title=title,user=user
+        has_more=has_more,title=title,user=user,saved_job_ids=saved_job_ids
     )
 
 @app.route("/job/<int:job_id>")
@@ -186,15 +187,23 @@ def job_details(job_id):
                 is_saved = SavedJobs.query.filter_by(user_id=user.id, job_id=job_id).first() is not None
             
 
-                user_set = {s.lower().strip() for s in user_skills}
-                job_set = {s.lower().strip() for s in job_skills}
+                user_set = set()
+                for s in user_skills:
+                    user_set.add(s.lower().strip())
+
+                job_set = set()
+                for s in job_skills:
+                    job_set.add(s.lower().strip())
+                    
+                
 
                 matching = sorted(user_set & job_set)
                 missing = sorted(job_set - user_set)
 
                
                 user_profile_text = build_user_profile_text(user)
-                score = calculate_match(user_skills, user_profile_text, job_skills, job_desc)
+                saved_score = saved_jobs_score(user, job_desc, job.get("jobTitle", "")) 
+                score = calculate_match(user_skills, user_profile_text, job_skills, job_desc, saved_score)
 
                 match_result = {
                     'score': score,
@@ -418,6 +427,7 @@ def account_page():
         return redirect(url_for('login_page'))
     
     user = User.query.filter_by(email=session['user']).first()
+  
     
     if not user:
         flash('User not found', 'error')
@@ -457,6 +467,7 @@ def upload_cv():
         return redirect(url_for('login_page'))
 
     user = User.query.filter_by(email=session['user']).first()
+   
 
     if not user:
         flash('User not found', 'error')
@@ -466,7 +477,7 @@ def upload_cv():
         action = request.form.get("action")
 
         if action == "add_skill":
-            skill_input = request.form.get('skills', '').strip()
+            skill_input = request.form.get('skills', '').lower().strip()
 
             if not skill_input:
                 flash("Enter a skill", "error")
@@ -600,6 +611,8 @@ def extract_skills_from_cv():
         flash("Error processing CV", "error")
 
     return redirect(url_for("upload_cv"))
+
+    
 
     
 @app.route('/edit_account', methods=["GET", "POST"])
@@ -829,22 +842,21 @@ def fetch_job(job_id):
 @cache.memoize(timeout=3600)
 def load_skills(path):
     skills = []
-    with open(path, newline="", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         reader = csv.reader(f)
         for row in reader:
-            if not row:
-                continue
-            s = row[0].strip()
-            if s and s.lower() != "skill":
-                skills.append(s)
+            if row:
+                skill = row[0].strip()
+                if skill.lower() != "skill":
+                    skills.append(skill)
+
     return skills
 
-@cache.memoize(timeout=200)
-def get_scored_jobs(params_tuple, user_skills_tuple, user_profile_text, user_experience, show_all, user_goal="",search_keywords="",saved_profile_text=""):
+
+def get_scored_jobs(params_tuple,user, user_skills_tuple, user_profile_text, user_experience, show_all, user_goal="",search_keywords=""):
     data = job_fetch(params_tuple)
     params = dict(params_tuple)
-
-
+    
     skills_list = load_skills("csv/skills.csv")
 
     if user_goal and not show_all and not search_keywords:
@@ -860,12 +872,17 @@ def get_scored_jobs(params_tuple, user_skills_tuple, user_profile_text, user_exp
 
     for job in all_jobs:
         job_desc = job.get("jobDescription", "") or ""
+        job_title = job.get("jobTitle", "") or ""
         job_desc_norm = " ".join(str(job_desc).lower().split())
         job_skills = extract_skills_from_description(job_desc_norm, skills_list)
+
+        saved_score = 0.0
+        if user:
+            saved_score = saved_jobs_score(user, job_desc, job_title)
  
 
 
-        job["match_score"] = calculate_match(user_skills, user_profile_text, job_skills, job_desc,saved_profile_text)
+        job["match_score"] = calculate_match(user_skills, user_profile_text, job_skills, job_desc,saved_score)
         job["experience_level"] = extract_experience_level(job.get("jobTitle", ""))
 
     all_jobs.sort(key=lambda j: j.get("match_score", 0), reverse=True)
@@ -937,6 +954,27 @@ def fetch_jobs(user_goal, user_experience, extra_params):
 
     return all_jobs
 
+def saved_jobs_score(user,job_desc,job_title):
+    saved_jobs = SavedJobs.query.filter_by(user_id=user.id).all()
+    scores=[]
+    text=f"{job_title} {job_desc}".lower().strip()
+
+    if not saved_jobs:
+        return 0.0
+
+    for saved in saved_jobs:
+        saved_text = f"{saved.job_title or ''} {saved.job_description or ''}".strip()
+        if not saved_text:
+            continue
+
+        score = tfidf_cosine_score(saved_text, text)
+        scores.append(score)
+
+    if not scores:
+        return 0.0
+
+    scores.sort(reverse=True)
+    return sum(scores[:3]) / len(scores[:3])
 
 @cache.memoize(timeout=200)
 def get_similar_jobs(job_id, job_title):
@@ -984,14 +1022,14 @@ def tfidf_cosine_score(user_profile_text, job_text):
 
     return cosine_similarity(X[0:1], X[1:2])[0][0] * 100
 
-def calculate_match(user_skills, user_profile_text, job_skills, job_desc,saved_profile_text=""):
+def calculate_match(user_skills, user_profile_text, job_skills, job_desc, saved_score):
     skill_score = skill_overlap_score(user_skills, job_skills)
     cosine_score = tfidf_cosine_score(user_profile_text, job_desc)
-    if saved_profile_text:
-        saved_score = tfidf_cosine_score(saved_profile_text, job_desc)
-        return round((0.5 * skill_score) + (0.25 * cosine_score) + (0.25 * saved_score), 2)
+
+    if saved_score > 0:
+        return round((0.4 * skill_score) + (0.3 * cosine_score) + (0.3 * saved_score), 2)
     
-    return round((0.7 * skill_score) + (0.3 * cosine_score), 2)
+    return round((0.6 * skill_score) + (0.4 * cosine_score), 2)
 
 if __name__ == "__main__":
     app.run(debug=True)

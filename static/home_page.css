@@ -251,3 +251,14 @@ li p {
   text-decoration: underline;
 }
 
+.save-job-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.save-icon {
+  width: 30px;
+  height: 30px;
+}

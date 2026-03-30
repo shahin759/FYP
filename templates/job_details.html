@@ -6,7 +6,7 @@
     <title>{{ job.jobTitle }} - Seeker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='job_details.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
+    
 
 </head>
 
@@ -33,11 +33,11 @@
 <div class="job_details">
     <a href="{{ url_for('home_page') }}" class="back-btn">&#8592; Back to Jobs</a>
     
-
-{% if session.user %}
-<button class="save-job-btn" data-job-id="{{ job.jobId }}">
-    {% if is_saved %}Unsave Job{% else %}Save Job{% endif %}
-</button>
+    {% if session.user %}
+    <button class="save-job-btn" data-job-id="{{ job['jobId'] }}">
+      <img src="{{ url_for('static', filename='favourite-fill.png' if job['jobId'] in saved_job_ids else 'favourite.png') }}"
+      class="save-icon">
+    </button>
 {% else %}
 <a href="{{ url_for('login_page') }}">Login to save job</a>
 {% endif %}
@@ -72,7 +72,7 @@
             </p>
         </div>
         {%else%}
-        Compete your profile to view AI reasoning
+        Complete your profile to view AI reasoning
         {% endif %}
         
     {% if match_result %}
@@ -176,5 +176,6 @@
 </div>
 
 {%include 'footer.html'%}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

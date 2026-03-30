@@ -6,7 +6,7 @@
   <title>Seeker - Job Listings</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='upload_cv.css') }}">
   <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
+  
 </head>
 
 <body>
@@ -22,6 +22,8 @@
     </div>
   {% endif %}
 {% endwith %}
+
+
 
 <h1> Upload your skills and experiences</h1>
 
@@ -98,5 +100,6 @@
   </form>
   <p>{{user.experience_level}}</p>
   {%include 'footer.html'%}
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

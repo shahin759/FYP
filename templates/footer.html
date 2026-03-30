@@ -2,7 +2,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='footer.css') }}">
-    <script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 <footer class="footer">
 
@@ -22,6 +21,7 @@
         <ul>
             <a href="{{ url_for('account_page') }}">My Profile</a>
             <a href="{{ url_for('courses_page') }}">View courses</a>
+            <a href="{{ url_for('saved_jobs') }}">View saved jobs</a>
         </ul>
       </div>
   
