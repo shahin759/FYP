@@ -82,8 +82,8 @@ class SavedJobs(db.Model): #saved jobs table
     max_salary=db.Column(db.String(200))
     job_description=db.Column(db.Text)
     job_url=db.Column(db.String(200))
-    saved_date=db.Column(db.DateTime, default=db.func.now())
     user = db.relationship("User", backref="saved_jobs")
+    
 
     __table_args__ = (
         db.UniqueConstraint("user_id", "job_id", name="unique_user_saved_jobs"),
@@ -158,8 +158,7 @@ def home_page():
         jobs=jobs,search_keywords=search_keywords,
         location=location,show_all=show_all,
         total_results=len(filtered),page=page,
-        has_more=has_more,title=title,user=user,saved_job_ids=saved_job_ids
-    )
+        has_more=has_more,title=title,user=user,saved_job_ids=saved_job_ids)
 
 @app.route("/job/<int:job_id>")
 def job_details(job_id):
@@ -200,10 +199,8 @@ def job_details(job_id):
                 matching = sorted(user_set & job_set)
                 missing = sorted(job_set - user_set)
 
-               
-                user_profile_text = build_user_profile_text(user)
-                saved_score = saved_jobs_score(user, job_desc, job.get("jobTitle", "")) 
-                score = calculate_match(user_skills, user_profile_text, job_skills, job_desc, saved_score)
+                combined_skills, profile_text = user_content_profile(user, skills_list)
+                score = calculate_match(combined_skills, profile_text, job_skills, job_desc, job.get("jobTitle", ""))
 
                 match_result = {
                     'score': score,
@@ -363,32 +360,8 @@ def saved_jobs():
             flash("Job removed", "success")
         return redirect(url_for("saved_jobs"))
 
-    saved = SavedJobs.query.filter_by(user_id=user.id)\
-        .order_by(SavedJobs.saved_date.desc()).all()
-
+    saved = SavedJobs.query.filter_by(user_id=user.id).all()
     return render_template("saved_jobs.html", saved_jobs=saved)
-
-def saved_jobs_profile(user):
-    saved_jobs=SavedJobs.query.filter_by(user_id=user.id).all()
-    if not saved_jobs:
-        return ""
-    
-    all_text=[]
-    saved_jobs_skills=load_skills("csv/skills.csv")
-    inferred_skills=set()
-
-    for saved in saved_jobs:
-        if saved.job_description:
-            all_text.append(saved.job_description)
-            desc_norm = " ".join(saved.job_description.lower().split())
-            inferred_skills.update(
-                extract_skills_from_description(desc_norm, saved_jobs_skills)
-            )
-        if saved.job_title:
-            all_text.append(saved.job_title)
-
-    return (" ".join(all_text) + " " + " ".join(inferred_skills)).strip()
-
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup_page():
@@ -724,10 +697,7 @@ def reset_password(token):
 def allowed_file(filename):   #checks if the uploaded file is a pdf, has to end with .pdf
     return filename.lower().endswith('.pdf')
 
-def normalize_text(x): # converts text into lower case removing and unecessary spaces
-    x = (x or "").lower()
-    x = re.sub(r"\s+", " ", x).strip()
-    return x
+
 
 def build_user_profile_text(user):
     skills = [us.skill.name for us in user.skills] if user else []
@@ -759,6 +729,7 @@ def explain_match_score(user_skills_tuple, user_experience, user_goal, job_title
     matching_skills = list(matching_tuple)
     missing_skills = list(missing_tuple)
 
+
     prompt = f"""write a very brief paragraph max 6 lines explaining why this is or isn't suitable for this user, be specific and tailored to the user and if it aligns to their experience level and career goal, no labels !!! , just explanation
 
     User:
@@ -773,10 +744,6 @@ def explain_match_score(user_skills_tuple, user_experience, user_goal, job_title
 
     try:
         response = ollama.chat(model='llama3.2:1b',messages=[{'role': 'user', 'content': prompt}],
-        options={
-        'num_predict': 80,
-        'temperature': 0.3
-    }
 )
         return response['message']['content'].strip()
     except Exception as e:
@@ -860,7 +827,7 @@ def get_scored_jobs(params_tuple,user, user_skills_tuple, user_profile_text, use
     skills_list = load_skills("csv/skills.csv")
 
     if user_goal and not show_all and not search_keywords:
-        all_jobs = fetch_jobs(user_goal, user_experience, params)
+        all_jobs = fetch_jobs(user_goal, user_experience, dict(params_tuple), user)
     else:
         data = job_fetch(params_tuple)
         all_jobs = data.get("results", [])[:50]
@@ -869,6 +836,12 @@ def get_scored_jobs(params_tuple,user, user_skills_tuple, user_profile_text, use
         return all_jobs
 
     user_skills = list(user_skills_tuple)
+    
+    combined_skills = user_skills
+    profile_text = user_profile_text
+    
+    if user:
+        combined_skills, profile_text = user_content_profile(user, skills_list)
 
     for job in all_jobs:
         job_desc = job.get("jobDescription", "") or ""
@@ -876,14 +849,10 @@ def get_scored_jobs(params_tuple,user, user_skills_tuple, user_profile_text, use
         job_desc_norm = " ".join(str(job_desc).lower().split())
         job_skills = extract_skills_from_description(job_desc_norm, skills_list)
 
-        saved_score = 0.0
-        if user:
-            saved_score = saved_jobs_score(user, job_desc, job_title)
- 
-
-
-        job["match_score"] = calculate_match(user_skills, user_profile_text, job_skills, job_desc,saved_score)
-        job["experience_level"] = extract_experience_level(job.get("jobTitle", ""))
+        job["match_score"] = calculate_match(
+            combined_skills, profile_text, job_skills, job_desc, job_title
+        )
+        job["experience_level"] = extract_experience_level(job_title)
 
     all_jobs.sort(key=lambda j: j.get("match_score", 0), reverse=True)
 
@@ -903,18 +872,39 @@ def get_scored_jobs(params_tuple,user, user_skills_tuple, user_profile_text, use
 
     return all_jobs
 
+def user_content_profile(user, skills_list):
+    user_skills = [us.skill.name for us in user.skills]
+    saved = SavedJobs.query.filter_by(user_id=user.id).all()
+    saved_skills = set()
+    saved_texts = []
 
+    for s in saved:
+        desc = (s.job_description or "").lower()
+        desc = " ".join(desc.split())
+        skills_found = extract_skills_from_description(desc, skills_list)
+        saved_skills.update(skills_found)
+        saved_texts.append(f"{s.job_title or ''} {s.job_description or ''}")
+
+    all_skills = list(set(user_skills) | saved_skills)
+
+    parts = []
+    parts.append(" ".join(all_skills))
+    parts.append(" ".join(all_skills))  
+    if user.career_goal:
+        parts.append(user.career_goal)
+        parts.append(user.career_goal)
+    parts.extend(saved_texts)
+
+    profile_text = " ".join(parts).lower().strip()
+    return all_skills, profile_text
 
 @cache.memoize(timeout=1800) # ollama is used to generate 3 job titles similar to the career goal outlined by the user, allows for more recommendations
 def get_synonyms(user_goal):
     prompt=f""""Give me 3 job titles that are similar to  "{user_goal}"Explicity return only a JSON array of strings,nothing else, no explanation,no label just job titles!"""
+
     try:
-        response = ollama.chat(model='llama3.2:1b',messages=[{'role': 'user', 'content': prompt}],
-        options={
-        'num_predict': 80,
-        'temperature': 0.3
-    }
-)
+        response = ollama.chat(model='llama3.2:1b', messages=[{'role': 'user', 'content': prompt}])
+
         text= response['message']['content'].strip()
         synonyms=json.loads(text)
         return synonyms[:3]
@@ -922,20 +912,32 @@ def get_synonyms(user_goal):
         print(f"Ollama error: {e}")
         return []
 
-def search_query(user_goal, user_experience):
+def search_query(user_goal, user_experience, user):
     queries = [user_goal]
-
     synonyms = get_synonyms(user_goal)
     queries.extend(synonyms)
+
+
+    if user:
+        saved = SavedJobs.query.filter_by(user_id=user.id).all()
+        for s in saved[:3]:
+            if s.job_title and s.job_title not in queries:
+                queries.append(s.job_title)
 
     level = extract_experience_level(user_experience)
     if level != "Not specified":
         queries = [f"{level.lower()} {user_goal}"] + queries
 
-    return list(dict.fromkeys(queries))
+    seen = set()
+    unique = []
+    for q in queries:
+        if q not in seen:
+            seen.add(q)
+            unique.append(q)
+    return unique
     
-def fetch_jobs(user_goal, user_experience, extra_params):
-    queries = search_query(user_goal, user_experience)
+def fetch_jobs(user_goal, user_experience, extra_params,user):
+    queries = search_query(user_goal, user_experience, user)
     seen_ids = set()
     all_jobs = []
 
@@ -1005,13 +1007,16 @@ def get_courses(missing_skills_tuple):
 def not_found(e):
     return render_template('404.html'), 404
 
-@cache.memoize(timeout=200)
+
 def skill_overlap_score(user_skills, job_skills):
     userskill = {str(x).strip().lower() for x in user_skills if str(x).strip()}
     jobskill = {str(x).strip().lower() for x in job_skills if str(x).strip()}
     if not jobskill:
         return 0.0
     return (len(userskill & jobskill) / len(jobskill)) * 100.0
+
+    
+
 
 def tfidf_cosine_score(user_profile_text, job_text):
     if not user_profile_text or not job_text:
@@ -1022,14 +1027,14 @@ def tfidf_cosine_score(user_profile_text, job_text):
 
     return cosine_similarity(X[0:1], X[1:2])[0][0] * 100
 
-def calculate_match(user_skills, user_profile_text, job_skills, job_desc, saved_score):
-    skill_score = skill_overlap_score(user_skills, job_skills)
-    cosine_score = tfidf_cosine_score(user_profile_text, job_desc)
 
-    if saved_score > 0:
-        return round((0.4 * skill_score) + (0.3 * cosine_score) + (0.3 * saved_score), 2)
+def calculate_match(combined_skills, profile_text, job_skills, job_desc, job_title):
     
-    return round((0.6 * skill_score) + (0.4 * cosine_score), 2)
+    skill_score = skill_overlap_score(combined_skills, job_skills)
+    cosine_score = tfidf_cosine_score(profile_text, job_desc)
+    title_score = tfidf_cosine_score(profile_text, job_title)
+    
+    return round(0.45 * skill_score + 0.35 * cosine_score + 0.20 * title_score, 2)
 
 if __name__ == "__main__":
     app.run(debug=True)

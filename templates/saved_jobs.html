@@ -30,7 +30,6 @@
         {% for saved in saved_jobs %}
         <div class="job-card">
           <h2>{{ saved.job_title or "Untitled Role" }}</h2>
-          <span class="saved-date">Date saved: {{ saved.saved_date.strftime('%d %b %Y') }}</span>
           <p><strong>Employer:</strong> {{ saved.employer_name or "Not specified" }}</p>
           {% if saved.min_salary and saved.max_salary %}
           <p><strong>Salary:</strong> £{{ "{:,}".format(saved.min_salary|int) }} - £{{ "{:,}".format(saved.max_salary|int) }}</p>

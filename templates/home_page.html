@@ -85,11 +85,25 @@
           <p>Experience level: {{ job.experience_level }}</p>
         {% endif %}
 
-        {% if "user" in session %}
-          {% if job.match_score %}
-            <p>Match: <strong>{{ job.match_score }}%</strong></p>
-          {% endif %}
+        {% if user %}
+        {% if user and user.career_goal and user.skills and user.experience_level %}
+        {% set job_exp = job.experience_level or "Not specified" %}
+        {% set user_exp = user.experience_level or "" %}
+        {% set user_goal = user.career_goal or "" %}
+        {% set title = job.get("jobTitle", "") %}
+      
+        {% if user_goal.lower() in title.lower() and user_exp.lower() in job_exp.lower() and job_exp != "Not specified" %}
+          <span style="color: green; font-weight: bold;">Strong Match</span>
+        {% elif job.match_score >= 70 %}
+          <span style="color: green; font-weight: bold;">Strong Match</span>
+        {% elif job.match_score >= 40 %}
+          <span style="color: orange; font-weight: bold;">Moderate Match</span>
+        {% else %}
+          <span style="color: red; font-weight: bold;">Low Match</span>
         {% endif %}
+      {% endif %}
+      {%endif%}
+
 
         {% if job.get('minimumSalary') and job.get('maximumSalary') %}
           <p>Salary: £{{ "{:,}".format(job.get('minimumSalary')) }} - £{{ "{:,}".format(job.get('maximumSalary')) }}</p>
