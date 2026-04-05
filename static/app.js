@@ -54,5 +54,46 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    let currentSize = 100;
 
+
+    document.getElementById('maximise').addEventListener('click', function () {
+    
+        if (currentSize < 150) {
+            currentSize = currentSize + 10;
+            document.body.style.fontSize = currentSize + "%";
+    
+            localStorage.setItem('textSize', currentSize);
+        }
+    });
+    
+    document.getElementById('minimise').addEventListener('click', function () {
+        if (currentSize > 75) {
+            currentSize = currentSize - 10;
+            document.body.style.fontSize = currentSize + "%";
+
+            localStorage.setItem('textSize', currentSize);
+        }
+    });
+    
+
+    document.getElementById('high-contrast').addEventListener('click', function() {
+        document.body.classList.toggle('high-contrast');
+        let isOn = document.body.classList.contains('high-contrast');
+        
+        localStorage.setItem('highContrast', isOn);
+    });
+
+
+    
+
+    let savedSize = localStorage.getItem('textSize');
+    if (savedSize) {
+        currentSize = parseInt(savedSize);
+        document.body.style.fontSize = currentSize + '%';
+    }
+    
+    if (localStorage.getItem('highContrast') === 'true') {
+        document.body.classList.add('high-contrast');
+    }
 });

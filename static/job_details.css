@@ -1,13 +1,13 @@
 * {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
+   
 }
 
 body {
-    background: #f3f4f6; /* light grey like Google */
+    background: #f3f4f6;
     color: #202124;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: Arial;
     line-height: 1.6;
     padding: 20px;
 }
@@ -22,35 +22,33 @@ body {
 }
 
 h1 {
-    font-size: 1.8rem;
     margin-bottom: 8px;
     color: #202124;
 }
 
 h3 {
-    font-size: 1.2rem;
+   
     margin-top: 24px;
     margin-bottom: 10px;
 }
 
 h4 {
-    font-size: 1rem;
+
     margin-bottom: 6px;
 }
 
 p {
     color: #5f6368;
-    font-size: 0.95rem;
+
     margin-bottom: 8px;
 }
 
 .back-btn {
     display: inline-block;
     margin-bottom: 16px;
-    color: #1a73e8; /* Google blue */
+    color: #1a73e8; 
     text-decoration: none;
     font-weight: 600;
-    font-size: 0.95rem;
 }
 
 .back-btn:hover {
@@ -80,11 +78,11 @@ p {
 }
 
 .job-meta span {
-    font-size: 0.9rem;
+
     color: #5f6368;
 }
 
-/* MATCH CARD */
+
 
 .match-card {
     background: #f8f9fa;
@@ -103,7 +101,7 @@ p {
 }
 
 .match-score-label {
-    font-size: 0.95rem;
+   
     margin-bottom: 6px;
 }
 
@@ -119,7 +117,6 @@ p {
     border-radius: 6px;
 }
 
-/* SKILLS */
 
 .skill-section {
     background: #ffffff;
@@ -135,11 +132,11 @@ p {
 }
 
 .skill-hint {
-    font-size: 0.85rem;
+   
     color: #888;
 }
 
-/* COURSES */
+
 
 .courses-section {
     margin-top: 28px;
@@ -166,7 +163,7 @@ p {
     color: white;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9rem;
+  
 }
 
 .course-btn:hover {
@@ -230,13 +227,6 @@ p {
     background: #ffffff;
 }
 
-.similar-job-card h4 {
-    font-size: 0.95rem;
-}
-
-.similar-job-card p {
-    font-size: 0.85rem;
-}
 
 .similar-job-card button {
     margin-top: 8px;
@@ -288,3 +278,358 @@ p {
 
 .flash.success { background: #34a853; }
 .flash.error   { background: #d93025; }
+
+.continue-application {
+    --color: #fff;
+    --background: #404660;
+    --background-hover: #3A4059;
+    --background-left: #2B3044;
+    --folder: #F3E9CB;
+    --folder-inner: #BEB393;
+    --paper: #FFFFFF;
+    --paper-lines: #BBC1E1;
+    --paper-behind: #E1E6F9;
+    --pencil-cap: #fff;
+    --pencil-top: #275EFE;
+    --pencil-middle: #fff;
+    --pencil-bottom: #5C86FF;
+    --shadow: rgba(13, 15, 25, .2);
+    border: none;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 19px;
+    -webkit-appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    padding: 17px 29px 17px 69px;
+    transition: background .3s;
+    color: var(--color);
+    background: var(--bg, var(--background));
+    margin-top: 24px;
+}
+
+.continue-application > div {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 53px;
+    position: absolute;
+    overflow: hidden;
+    border-radius: 5px 0 0 5px;
+    background: var(--background-left);
+}
+
+.continue-application .folder {
+    width: 23px;
+    height: 27px;
+    position: absolute;
+    left: 15px;
+    top: 13px;
+}
+
+.continue-application .folder .top {
+    left: 0;
+    top: 0;
+    z-index: 2;
+    position: absolute;
+    transform: translateX(var(--fx, 0));
+    transition: transform .4s ease var(--fd, .3s);
+}
+
+.continue-application .folder .top svg {
+    width: 24px;
+    height: 27px;
+    display: block;
+    fill: var(--folder);
+    transform-origin: 0 50%;
+    transition: transform .3s ease var(--fds, .45s);
+    transform: perspective(120px) rotateY(var(--fr, 0deg));
+}
+
+.continue-application .folder::before,
+.continue-application .folder::after,
+.continue-application .folder .paper {
+    content: '';
+    position: absolute;
+    left: var(--l, 0);
+    top: var(--t, 0);
+    width: var(--w, 100%);
+    height: var(--h, 100%);
+    border-radius: 1px;
+    background: var(--b, var(--folder-inner));
+}
+
+.continue-application .folder::before {
+    box-shadow: 0 1.5px 3px var(--shadow), 0 2.5px 5px var(--shadow), 0 3.5px 7px var(--shadow);
+    transform: translateX(var(--fx, 0));
+    transition: transform .4s ease var(--fd, .3s);
+}
+
+.continue-application .folder::after,
+.continue-application .folder .paper {
+    --l: 1px;
+    --t: 1px;
+    --w: 21px;
+    --h: 25px;
+    --b: var(--paper-behind);
+}
+
+.continue-application .folder::after {
+    transform: translate(var(--pbx, 0), var(--pby, 0));
+    transition: transform .4s ease var(--pbd, 0s);
+}
+
+.continue-application .folder .paper {
+    z-index: 1;
+    --b: var(--paper);
+}
+
+.continue-application .folder .paper::before,
+.continue-application .folder .paper::after {
+    content: '';
+    width: var(--wp, 14px);
+    height: 2px;
+    border-radius: 1px;
+    transform: scaleY(.5);
+    left: 3px;
+    top: var(--tp, 3px);
+    position: absolute;
+    background: var(--paper-lines);
+    box-shadow: 0 12px 0 0 var(--paper-lines), 0 24px 0 0 var(--paper-lines);
+}
+
+.continue-application .folder .paper::after {
+    --tp: 6px;
+    --wp: 10px;
+}
+
+.continue-application .pencil {
+    height: 2px;
+    width: 3px;
+    border-radius: 1px 1px 0 0;
+    top: 8px;
+    left: 105%;
+    position: absolute;
+    z-index: 3;
+    transform-origin: 50% 19px;
+    background: var(--pencil-cap);
+    transform: translateX(var(--pex, 0)) rotate(35deg);
+    transition: transform .4s ease var(--pbd, 0s);
+}
+
+.continue-application .pencil::before,
+.continue-application .pencil::after {
+    content: '';
+    position: absolute;
+    display: block;
+    background: var(--b, linear-gradient(var(--pencil-top) 55%, var(--pencil-middle) 55.1%, var(--pencil-middle) 60%, var(--pencil-bottom) 60.1%));
+    width: var(--w, 5px);
+    height: var(--h, 20px);
+    border-radius: var(--br, 2px 2px 0 0);
+    top: var(--t, 2px);
+    left: var(--l, -1px);
+}
+
+.continue-application .pencil::before {
+    clip-path: polygon(0 5%, 5px 5%, 5px 17px, 50% 20px, 0 17px);
+}
+
+.continue-application .pencil::after {
+    --b: none;
+    --w: 3px;
+    --h: 6px;
+    --br: 0 2px 1px 0;
+    --t: 3px;
+    --l: 3px;
+    border-top: 1px solid var(--pencil-top);
+    border-right: 1px solid var(--pencil-top);
+}
+
+.continue-application::before,
+.continue-application::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--color);
+    transform-origin: 9px 1px;
+    transform: translateX(var(--cx, 0)) scale(.5) rotate(var(--r, -45deg));
+    top: 26px;
+    right: 16px;
+    transition: transform .3s;
+}
+
+.continue-application::after {
+    --r: 45deg;
+}
+
+.continue-application:hover {
+    --cx: 2px;
+    --bg: var(--background-hover);
+    --fx: -40px;
+    --fr: -60deg;
+    --fd: .15s;
+    --fds: 0s;
+    --pbx: 3px;
+    --pby: -3px;
+    --pbd: .15s;
+    --pex: -24px;
+}
+body.high-contrast {
+    background: #000;
+    color: #fff;
+  }
+  
+  body.high-contrast .job_details,
+  body.high-contrast .match-card,
+  body.high-contrast .match-reasoning,
+  body.high-contrast .skill-section,
+  body.high-contrast .course-card,
+  body.high-contrast .similar-job-card,
+  body.high-contrast .login-prompt {
+    background: #111;
+    color: #fff;
+    border: 1px solid #fff;
+  }
+  
+
+  body.high-contrast h1,
+  body.high-contrast h3,
+  body.high-contrast h4,
+  body.high-contrast p,
+  body.high-contrast .job-meta span,
+  body.high-contrast .skill-hint {
+    color: #fff;
+  }
+  
+  body.high-contrast .course-btn,
+  body.high-contrast .apply-btn {
+    background: #00ffff;
+    color: #000;
+  }
+  
+  body.high-contrast .course-btn:hover,
+  body.high-contrast .apply-btn:hover {
+    background: #00d9ff;
+  }
+  
+ 
+  body.high-contrast .back-btn,
+  body.high-contrast a {
+    color: #00ffff;
+  }
+  
+
+  body.high-contrast .experience-warning {
+    background: #222;
+    color: #00ffff;
+    border: 1px solid #00ffff;
+  }
+  
+  
+  body.high-contrast .match-bar-bg {
+    background: #444;
+  }
+  
+  body.high-contrast .match-bar-fill {
+    background: #00ffff;
+  }
+  
+  
+  body.high-contrast .similar-job-card button {
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+  }
+  
+  body.high-contrast .similar-job-card button:hover {
+    background: #222;
+  }
+  .profile-incomplete {
+    max-width: 900px;
+    margin: 0 auto 15px auto;
+    padding: 12px 15px;
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+    border-radius: 6px;
+
+  }
+  
+  .profile-incomplete a {
+    color: #856404;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+  
+  body.high-contrast .profile-incomplete {
+    background: #111;
+    color: #ffff00;
+    border: 1px solid #ffff00;
+  }
+  
+  body.high-contrast .profile-incomplete a {
+    color: #00ffff;
+  }
+  @media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .job_details {
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 1.4em;
+    }
+
+    .job-meta {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .course-grid,
+    .similar-jobs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .continue-application {
+        width: 100%;
+        text-align: center;
+    }
+
+    .save-job-btn {
+        padding: 8px;
+    }
+
+    .save-icon {
+        width: 24px;
+        height: 24px;
+    }
+}
+.similar-job-card button {
+    margin-top: 8px;
+    padding: 8px 15px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.similar-job-card button:hover {
+    background-color: #0056b3;
+}
+body.high-contrast .similar-job-card button {
+    background-color: #00ffff;
+    color: #000;
+}
+
+body.high-contrast .similar-job-card button:hover {
+    background-color: #00d9ff;
+}

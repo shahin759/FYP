@@ -102,7 +102,7 @@ def home_page():
     location = request.args.get('location', '')
     page = int(request.args.get('page', 1))
     show_all = request.args.get('all') == '1'
-    per_page = 20
+    per_page = 22
 
 
     params = {}
@@ -118,7 +118,7 @@ def home_page():
     user_goal = ""
     user_skill_count = 0
 
-    if "user" in session:
+    if "user" in session:    #if user logged in , build their profile
         user = User.query.filter_by(email=session["user"]).first()
         if user:
             user_skills = [us.skill.name for us in user.skills]
@@ -129,10 +129,10 @@ def home_page():
             
 
     if "user" in session and user_goal and not search_keywords and not show_all:
-        params['keywords'] = user_goal
+        params['keywords'] = user_goal  # uses the users career goal as search word to display relevant jobs
  
     try:
-        filtered = get_scored_jobs(
+        filtered = get_scored_jobs( #fetchs job from API and scores each job
              tuple(sorted(params.items())),user,tuple(user_skills),
              user_profile_text,user_experience,
              show_all,user_goal,search_keywords
@@ -141,10 +141,7 @@ def home_page():
     except Exception as e:
         return f"Error fetching jobs: {e}", 500
 
-    if "user" in session:
-      title = "Recommended jobs for you"
-    else:
-      title = None
+  
 
     end = page * per_page
     jobs = filtered[:end]
@@ -153,19 +150,19 @@ def home_page():
     if user:
         saved_job_ids = [s.job_id for s in SavedJobs.query.filter_by(user_id=user.id).all()]
 
-    return render_template(
+    return render_template( 
         "home_page.html",
         jobs=jobs,search_keywords=search_keywords,
         location=location,show_all=show_all,
         total_results=len(filtered),page=page,
-        has_more=has_more,title=title,user=user,saved_job_ids=saved_job_ids)
+        has_more=has_more,user=user,saved_job_ids=saved_job_ids)
 
-@app.route("/job/<int:job_id>")
+@app.route("/job/<int:job_id>") #job details page
 def job_details(job_id):
     try:
         job = fetch_job(job_id)
 
-        skills_list = load_skills("csv/skills.csv")
+        skills_list = load_skills("csv/skills.csv")  #loads job description and extract skills 
         job_desc = job.get("jobDescription") or ""
         job_desc_norm = " ".join(str(job_desc).lower().split())
         job_skills = extract_skills_from_description(job_desc_norm, skills_list)
@@ -179,7 +176,7 @@ def job_details(job_id):
         is_saved = False
 
         
-        if "user" in session:
+        if "user" in session:  #if user logged in compares the extracted skills to the users skill
             user = User.query.filter_by(email=session["user"]).first()
             if user:
                 user_skills = [us.skill.name for us in user.skills]
@@ -217,18 +214,18 @@ def job_details(job_id):
    
         job_title = job.get("jobTitle", "")
 
-        if missing_skills_tuple:
+        if missing_skills_tuple:  #shows courses that address the missing skills
          recommended_courses = get_courses(missing_skills_tuple)
         else:
          recommended_courses = []
 
-        similar_jobs = get_similar_jobs(job_id, job_title)
+        similar_jobs = get_similar_jobs(job_id, job_title) # gets similar jobs
 
         job_experience = extract_experience_level(job.get("jobTitle", ""))
         experience_warning = None
         if user and user.experience_level and job_experience != "Not specified":
             if user.experience_level.lower() not in job_experience.lower():
-                experience_warning = f"This role appears to be {job_experience} level. Your profile is set to {user.experience_level}."
+                experience_warning = f"This role appears to be {job_experience} level. Your profile is set to {user.experience_level}." #warns users if they have different experience level to job
 
         return render_template(
             "job_details.html", job=job,job_skills=job_skills,
@@ -242,7 +239,7 @@ def job_details(job_id):
         return f"Error fetching job details: {e}", 500
 
 
-@app.route("/job/<int:job_id>/match_reasoning")
+@app.route("/job/<int:job_id>/match_reasoning")   # allows for job details page to show whilst ollama generates
 def job_match_reasoning(job_id):
     if "user" not in session:
         return jsonify({"reasoning": None, "error": "Not logged in"}), 401
@@ -254,15 +251,20 @@ def job_match_reasoning(job_id):
     try:
         job = fetch_job(job_id)
 
-        skills_list = load_skills("csv/skills.csv")
+        skills_list = load_skills("csv/skills.csv") 
         job_desc = job.get("jobDescription") or ""
         job_desc_norm = " ".join(str(job_desc).lower().split())
         job_skills = extract_skills_from_description(job_desc_norm, skills_list)
 
         user_skills = [us.skill.name for us in user.skills]
 
-        user_set = {s.lower().strip() for s in user_skills}
-        job_set = {s.lower().strip() for s in job_skills}
+        user_set = set()
+        for s in user_skills:
+            user_set.add(s.lower().strip())
+
+        job_set = set()
+        for s in job_skills:
+            job_set.add(s.lower().strip())
 
         matching = sorted(user_set & job_set)
         missing = sorted(job_set - user_set)
@@ -283,13 +285,8 @@ def job_match_reasoning(job_id):
 
         return jsonify({"reasoning": None, "error": "Could not generate reasoning"}), 500
 
-def course_matches(course_skills,missing_skills):
-    for skill in missing_skills:
-        if skill.lower() in (course_skills).lower():
-            return True
-    return False
     
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/login", methods=["GET", "POST"])  #login page, 
 def login_page():
  if request.method == 'POST':
         email = request.form.get('email')
@@ -310,7 +307,7 @@ def login_page():
     
  return render_template('login_page.html')
 
-@app.route("/save_job/<int:job_id>", methods=["POST"])
+@app.route("/save_job/<int:job_id>", methods=["POST"])  # allows loged in users to save and unsave jobs
 def save_job(job_id):
     if "user" not in session:
         return jsonify({"reasoning": None, "error": "Not logged in"}), 401
@@ -340,7 +337,7 @@ def save_job(job_id):
         return jsonify({"error": str(e)}), 500
         
 
-@app.route("/saved_jobs", methods=["GET", "POST"])
+@app.route("/saved_jobs", methods=["GET", "POST"]) #saved jobs page
 def saved_jobs():
     if "user" not in session:
         flash("Login first", "error")
@@ -363,7 +360,7 @@ def saved_jobs():
     saved = SavedJobs.query.filter_by(user_id=user.id).all()
     return render_template("saved_jobs.html", saved_jobs=saved)
 
-@app.route("/signup", methods=["GET", "POST"])
+@app.route("/signup", methods=["GET", "POST"])  #signup page allows users to signup
 def signup_page():
   if request.method =='POST':
     firstname= request.form.get('firstname')
@@ -371,6 +368,14 @@ def signup_page():
     email=request.form.get('email')
     password=request.form.get('password')
     confirm_password=request.form.get('confirm_password')
+    
+    if not email or '@' not in email:
+        flash('Please enter a valid email address', 'error')
+        return redirect(url_for('signup_page'))
+    
+    if len(password) < 8:
+        flash('Password must be at least 8 characters', 'error')
+        return redirect(url_for('signup_page'))
 
     existing_user = User.query.filter_by(email=email).first()
     if existing_user:
@@ -393,7 +398,7 @@ def signup_page():
     
   return render_template('signup_page.html')
     
-@app.route('/account-page', methods=['GET'])
+@app.route('/account-page', methods=['GET']) #account page, allowing users to view their details
 def account_page():
     if 'user' not in session:
         flash('Please login first', 'error')
@@ -408,7 +413,7 @@ def account_page():
     
     return render_template('account_page.html', user=user)
 
-@app.route('/courses')
+@app.route('/courses') #courses page showing the courses from csv file
 def courses_page():
     search_course = request.args.get('courses', '').strip().lower()
 
@@ -433,7 +438,7 @@ def courses_page():
     return render_template("courses_page.html",courses=course_list, search_course = request.args.get('courses', '').strip().lower(), total_results=len(course_list))
 
 
-@app.route('/upload_cv', methods=["GET", "POST"])
+@app.route('/upload_cv', methods=["GET", "POST"]) # upload cv, allows user to complete their profile
 def upload_cv():
     if 'user' not in session:
         flash('Login first', 'error')
@@ -514,7 +519,7 @@ def upload_cv():
 
 
 
-def extract_skills_from_description(text, skills):
+def extract_skills_from_description(text, skills): #finds the skills from job description
     found = set()
     for skill in sorted(skills, key=len, reverse=True):
         s = skill.strip()
@@ -527,7 +532,7 @@ def extract_skills_from_description(text, skills):
     return sorted(found)
 
 
-@app.route("/extract_skills_from_cv", methods=["POST"])
+@app.route("/extract_skills_from_cv", methods=["POST"]) #allows user to upload PDF , all text is extracted and checked to find any recognised skill
 def extract_skills_from_cv():
     if "user" not in session:
         flash("Login first", "error")
@@ -588,7 +593,7 @@ def extract_skills_from_cv():
     
 
     
-@app.route('/edit_account', methods=["GET", "POST"])
+@app.route('/edit_account', methods=["GET", "POST"]) # allows user to edit account details
 def edit_account():
     if 'user' not in session:
         flash('Login first', 'error')
@@ -641,7 +646,7 @@ def edit_account():
 
     return render_template("edit_account.html", user=user)
 
-@app.route('/forgot_password', methods=["POST", "GET"])
+@app.route('/forgot_password', methods=["POST", "GET"]) #forgot password page, generates token to allow user to change password
 def forgot_password():
     if request.method == 'POST':
         email = request.form.get('email').strip()
@@ -667,7 +672,7 @@ def forgot_password():
         return redirect(url_for('login_page'))
     return render_template("forgot_password.html")
 
-@app.route('/reset_password/<token>',methods=["POST","GET"])
+@app.route('/reset_password/<token>',methods=["POST","GET"])#after user clicks email , they can reset password
 def reset_password(token):
     email=reset_tokens.get(token)
 
@@ -699,13 +704,9 @@ def allowed_file(filename):   #checks if the uploaded file is a pdf, has to end 
 
 
 
-def build_user_profile_text(user):
+def build_user_profile_text(user): #creates a text blob of the users skills, carrer goal and experience level
     skills = [us.skill.name for us in user.skills] if user else []
-    parts = [
-        " ".join(skills),
-        user.career_goal or "",
-        user.experience_level or ""
-    ]
+    parts = [" ".join(skills), user.career_goal or "", user.experience_level or ""]
     return " ".join([p for p in parts if p]).strip()
 
 
@@ -756,7 +757,7 @@ def logout():
     flash('Logged out','success')
     return redirect (url_for('home_page'))
 
-@app.route('/contact_us',methods=["GET", "POST"])
+@app.route('/contact_us',methods=["GET", "POST"]) #contact us page, sends form to email
 def contact_us():
     if request.method=="POST":
         name= request.form.get("name")
@@ -764,10 +765,7 @@ def contact_us():
         subject = request.form.get("subject")
         message= request.form.get("message")
         try:
-            msg = Message(
-                subject=f"Contact Form: {subject}",
-                recipients=[app.config['MAIL_USERNAME']]
-            )
+            msg = Message(subject=f"Contact Form: {subject}",recipients=[app.config['MAIL_USERNAME']])
 
             msg.body = f"""
             Name: {name} 
@@ -784,12 +782,12 @@ def contact_us():
     return render_template("contact_us.html")
 
 
-@app.route('/about_us')
+@app.route('/about_us') #about us page
 def about_us():
        return render_template('about_us.html')
 
 
-@cache.memoize(timeout=200)
+@cache.memoize(timeout=200) # calls Reed API to search for jobs using given parameters
 def job_fetch(params_tuple):
     params=dict(params_tuple)
     response=requests.get(f"{BASE_URL}/search",params=params,auth=(API_KEY, ""),timeout=10)
@@ -797,7 +795,7 @@ def job_fetch(params_tuple):
     return response.json()
 
 
-@cache.memoize(timeout=600)
+@cache.memoize(timeout=600) #gets full detail of a job , for job details page
 def fetch_job(job_id):
     response = requests.get(
         f"{BASE_URL}/jobs/{job_id}",auth=(API_KEY, ""),
@@ -806,7 +804,7 @@ def fetch_job(job_id):
     response.raise_for_status()
     return response.json()
 
-@cache.memoize(timeout=3600)
+@cache.memoize(timeout=3600) #returns a list of skills from skills.csv
 def load_skills(path):
     skills = []
     with open(path, encoding="utf-8") as f:
@@ -820,8 +818,8 @@ def load_skills(path):
     return skills
 
 
-def get_scored_jobs(params_tuple,user, user_skills_tuple, user_profile_text, user_experience, show_all, user_goal="",search_keywords=""):
-    data = job_fetch(params_tuple)
+def get_scored_jobs(params_tuple,user, user_skills_tuple, user_profile_text, user_experience, show_all, user_goal="",search_keywords=""):# gets user profile and scores jobs
+
     params = dict(params_tuple)
     
     skills_list = load_skills("csv/skills.csv")
@@ -872,7 +870,7 @@ def get_scored_jobs(params_tuple,user, user_skills_tuple, user_profile_text, use
 
     return all_jobs
 
-def user_content_profile(user, skills_list):
+def user_content_profile(user, skills_list): #builds text blob with everything know about use
     user_skills = [us.skill.name for us in user.skills]
     saved = SavedJobs.query.filter_by(user_id=user.id).all()
     saved_skills = set()
@@ -888,11 +886,12 @@ def user_content_profile(user, skills_list):
     all_skills = list(set(user_skills) | saved_skills)
 
     parts = []
-    parts.append(" ".join(all_skills))
+    
     parts.append(" ".join(all_skills))  
     if user.career_goal:
         parts.append(user.career_goal)
         parts.append(user.career_goal)
+    parts.extend(saved_texts)
     parts.extend(saved_texts)
 
     profile_text = " ".join(parts).lower().strip()
@@ -912,7 +911,7 @@ def get_synonyms(user_goal):
         print(f"Ollama error: {e}")
         return []
 
-def search_query(user_goal, user_experience, user):
+def search_query(user_goal, user_experience, user): # creates a list pf search quereies to send to reed api, allows for the generation of broader jobs
     queries = [user_goal]
     synonyms = get_synonyms(user_goal)
     queries.extend(synonyms)
@@ -936,7 +935,7 @@ def search_query(user_goal, user_experience, user):
             unique.append(q)
     return unique
     
-def fetch_jobs(user_goal, user_experience, extra_params,user):
+def fetch_jobs(user_goal, user_experience, extra_params,user): #search the queries generated from search_query
     queries = search_query(user_goal, user_experience, user)
     seen_ids = set()
     all_jobs = []
@@ -956,44 +955,31 @@ def fetch_jobs(user_goal, user_experience, extra_params,user):
 
     return all_jobs
 
-def saved_jobs_score(user,job_desc,job_title):
-    saved_jobs = SavedJobs.query.filter_by(user_id=user.id).all()
-    scores=[]
-    text=f"{job_title} {job_desc}".lower().strip()
 
-    if not saved_jobs:
-        return 0.0
-
-    for saved in saved_jobs:
-        saved_text = f"{saved.job_title or ''} {saved.job_description or ''}".strip()
-        if not saved_text:
-            continue
-
-        score = tfidf_cosine_score(saved_text, text)
-        scores.append(score)
-
-    if not scores:
-        return 0.0
-
-    scores.sort(reverse=True)
-    return sum(scores[:3]) / len(scores[:3])
 
 @cache.memoize(timeout=200)
-def get_similar_jobs(job_id, job_title):
+def get_similar_jobs(job_id, job_title): #generates jobs with same title as one user is viewing
     try:
         results = requests.get(
             f"{BASE_URL}/search",
             params={"keywords": job_title or "", "res": 6},
             auth=(API_KEY, ""),timeout=6).json().get("results", [])
 
-        return [j for j in results if j.get("jobId") != job_id][:6] #returns 4 similar jobs ,different to the one the user is viewing
+        return [j for j in results if j.get("jobId") != job_id][:6] #returns 6 similar jobs ,different to the one the user is viewing
 
     except Exception as e:
         print(f"error: {e}")
         return []
 
+
+def course_matches(course_skills,missing_skills): #checks if the missing skills is covered in by any course
+    for skill in missing_skills:
+        if skill.lower() in (course_skills).lower():
+            return True
+    return False
+
 @cache.memoize(timeout=3600)
-def get_courses(missing_skills_tuple):
+def get_courses(missing_skills_tuple): #shows courses that covers users missing skills for that job
     missing_skills = list(missing_skills_tuple)
     try:
         df = pd.read_csv('csv/courses.csv')
@@ -1003,22 +989,30 @@ def get_courses(missing_skills_tuple):
         print(f"Course error: {e}")
         return []
 
+
 @app.errorhandler(404)
 def not_found(e):
     return render_template('404.html'), 404
 
 
-def skill_overlap_score(user_skills, job_skills):
-    userskill = {str(x).strip().lower() for x in user_skills if str(x).strip()}
-    jobskill = {str(x).strip().lower() for x in job_skills if str(x).strip()}
+def skill_overlap_score(user_skills, job_skills): # calculates the percentage of the required skills the user has 
+    userskill = set()
+    for x in user_skills:
+        if str(x).strip():
+            userskill.add(str(x).strip().lower())
+
+    jobskill = set()
+    for x in job_skills:
+        if str(x).strip():
+            jobskill.add(str(x).strip().lower())
+
     if not jobskill:
         return 0.0
     return (len(userskill & jobskill) / len(jobskill)) * 100.0
-
     
 
 
-def tfidf_cosine_score(user_profile_text, job_text):
+def tfidf_cosine_score(user_profile_text, job_text): # compares two user profile to job description , uses cosine similarity
     if not user_profile_text or not job_text:
         return 0.0
 
@@ -1028,13 +1022,13 @@ def tfidf_cosine_score(user_profile_text, job_text):
     return cosine_similarity(X[0:1], X[1:2])[0][0] * 100
 
 
-def calculate_match(combined_skills, profile_text, job_skills, job_desc, job_title):
+def calculate_match(combined_skills, profile_text, job_skills, job_desc, job_title): #final scoring algorithm
     
     skill_score = skill_overlap_score(combined_skills, job_skills)
     cosine_score = tfidf_cosine_score(profile_text, job_desc)
     title_score = tfidf_cosine_score(profile_text, job_title)
     
-    return round(0.45 * skill_score + 0.35 * cosine_score + 0.20 * title_score, 2)
+    return round(0.40 * skill_score + 0.4 * cosine_score + 0.20 * title_score, 2)
 
 if __name__ == "__main__":
     app.run(debug=True)

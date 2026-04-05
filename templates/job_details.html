@@ -6,8 +6,6 @@
     <title>{{ job.jobTitle }} - Seeker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='job_details.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
-    
-
 </head>
 
 <body>
@@ -22,25 +20,26 @@
     </div>
     {% endif %}
 {% endwith %}
-{% if session.user and user %}
- {% if not user.career_goal or not user.skills or not user.experience_level%}
- <div class="profile-incomplete">
-   Your profile is incomplete — <a href="{{ url_for('upload_cv') }}">complete your profile</a> for personalised job recommendations and match scores.
-</div>
-{% endif %}
 
+{% if session.user and user %}
+    {% if not user.career_goal or not user.skills or not user.experience_level %}
+    <div class="profile-incomplete">
+        Your profile is incomplete — <a href="{{ url_for('upload_cv') }}">complete your profile</a> for personalised job recommendations and match scores.
+    </div>
+    {% endif %}
+{% endif %}
 
 <div class="job_details">
     <a href="{{ url_for('home_page') }}" class="back-btn">&#8592; Back to Jobs</a>
-    
+
     {% if session.user %}
     <button class="save-job-btn" data-job-id="{{ job['jobId'] }}">
-      <img src="{{ url_for('static', filename='favourite-fill.png' if job['jobId'] in saved_job_ids else 'favourite.png') }}"
-      class="save-icon">
+        <img src="{{ url_for('static', filename='favourite-fill.png' if is_saved else 'favourite.png') }}" class="save-icon">
     </button>
-{% else %}
-<a href="{{ url_for('login_page') }}">Login to save job</a>
-{% endif %}
+    {% else %}
+    <a href="{{ url_for('login_page') }}">Login to save job</a>
+    {% endif %}
+
     {% if experience_warning %}
     <div class="experience-warning">
         &#9888; {{ experience_warning }}
@@ -61,21 +60,11 @@
 
     {% if match_result and user and user.skills and user.career_goal and user.experience_level %}
     <div class="match-card">
-      
+
         <div class="match-reasoning">
-            <p id="match-reasoning-text">
-                {% if match_reasoning %}
-                    {{ match_reasoning }}
-                {% else %}
-                    Generating reasoning...
-                {% endif %}
-            </p>
+            <p id="match-reasoning-text">Generating reasoning...</p>
         </div>
-        {%else%}
-        Complete your profile to view AI reasoning
-        {% endif %}
-        
-    {% if match_result %}
+
         {% if user.skills|length < 7 %}
         <div class="profile-incomplete">
             Add at least 7 skills to your <a href="{{ url_for('upload_cv') }}">profile</a> to view your match score.
@@ -90,14 +79,14 @@
         </div>
         <p>You match <strong>{{ match_result.total_matching }}</strong> out of <strong>{{ match_result.job_total_skills }}</strong> required skills</p>
         {% endif %}
-    {% endif %}
+
         {% if match_result.matching_skills %}
         <div class="skill-section">
             <h4>Skills You Have ({{ match_result.matching_skills|length }})</h4>
             <p>{{ match_result.matching_skills | join(', ') }}</p>
         </div>
         {% endif %}
-    
+
         {% if match_result.missing_skills %}
         <div class="skill-section missing">
             <h4>Skills to Develop ({{ match_result.missing_skills|length }})</h4>
@@ -105,6 +94,12 @@
             <p>{{ match_result.missing_skills | join(', ') }}</p>
         </div>
         {% endif %}
+
+    </div>
+
+    {% elif user and (not user.skills or not user.career_goal or not user.experience_level) %}
+    <div class="profile-incomplete">
+        Complete your profile to view AI reasoning and match score.
     </div>
     {% endif %}
 
@@ -164,7 +159,7 @@
                 <p>£{{ "{:,}".format(similar.minimumSalary) }} - £{{ "{:,}".format(similar.maximumSalary) }}</p>
                 {% endif %}
                 <a href="{{ url_for('job_details', job_id=similar.jobId) }}">
-                    <button type="button">View Job</button>
+                    <button  class= "course-btn">View Job</button>
                 </a>
             </div>
             {% endfor %}
@@ -172,10 +167,25 @@
     </div>
     {% endif %}
 
-    <a href="{{ job.jobUrl }}" target="_blank" class="apply-btn">Apply on Reed &#8594;</a>
+    <a href="{{ job.jobUrl }}" target="_blank" style="text-decoration: none;">
+        <button class="continue-application">
+            <div>
+                <div class="pencil"></div>
+                <div class="folder">
+                    <div class="top">
+                        <svg viewBox="0 0 24 27">
+                            <path d="M1,0 L23,0 C23.5522847,-1.01453063e-16 24,0.44771525 24,1 L24,8.17157288 C24,8.70200585 23.7892863,9.21071368 23.4142136,9.58578644 L20.5857864,12.4142136 C20.2107137,12.7892863 20,13.2979941 20,13.8284271 L20,26 C20,26.5522847 19.5522847,27 19,27 L1,27 C0.44771525,27 6.76353751e-17,26.5522847 0,26 L0,1 C-6.76353751e-17,0.44771525 0.44771525,1.01453063e-16 1,0 Z"></path>
+                        </svg>
+                    </div>
+                    <div class="paper"></div>
+                </div>
+            </div>
+            Apply on Reed
+        </button>
+    </a>
 </div>
 
-{%include 'footer.html'%}
+{% include 'footer.html' %}
 <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

@@ -22,8 +22,8 @@
     {% endif %}
   {% endwith %}
 
-  {% if title %}
-    <h2>{{ title }}</h2>
+  {% if session.user and user %}
+
   {% else %}
     <div class="login-prompt">
       <p>
@@ -37,7 +37,7 @@
   {% if session.user and user %}
     {% if not user.career_goal or not user.skills or not user.experience_level %}
     <div class="profile-incomplete">
-      Your profile is incomplete — <a href="{{ url_for('upload_cv') }}">complete your profile</a> for personalised job recommendations and match scores.
+      ⚠️Your profile is incomplete — <a href="{{ url_for('upload_cv') }}">complete your profile</a> for personalised job recommendations and match scores.
     </div>
     {% endif %}
   {% endif %}
@@ -86,24 +86,24 @@
         {% endif %}
 
         {% if user %}
+        
         {% if user and user.career_goal and user.skills and user.experience_level %}
-        {% set job_exp = job.experience_level or "Not specified" %}
-        {% set user_exp = user.experience_level or "" %}
-        {% set user_goal = user.career_goal or "" %}
-        {% set title = job.get("jobTitle", "") %}
-      
-        {% if user_goal.lower() in title.lower() and user_exp.lower() in job_exp.lower() and job_exp != "Not specified" %}
-          <span style="color: green; font-weight: bold;">Strong Match</span>
-        {% elif job.match_score >= 70 %}
-          <span style="color: green; font-weight: bold;">Strong Match</span>
-        {% elif job.match_score >= 40 %}
-          <span style="color: orange; font-weight: bold;">Moderate Match</span>
-        {% else %}
-          <span style="color: red; font-weight: bold;">Low Match</span>
-        {% endif %}
-      {% endif %}
-      {%endif%}
+  {% set job_exp = job.experience_level or "Not specified" %}
+  {% set user_exp = user.experience_level or "" %}
+  {% set user_goal = user.career_goal or "" %}
+  {% set title = job.get("jobTitle", "") %}
 
+  {% if user_goal.lower() in title.lower() and user_exp.lower() in job_exp.lower() and job_exp != "Not specified" %}
+    <span style="color: green; font-weight: bold;">Strong Match</span>
+  {% elif job.get("match_score", 0) >= 70 %}
+    <span style="color: green; font-weight: bold;">Strong Match</span>
+  {% elif job.get("match_score", 0) >= 40 %}
+    <span style="color: orange; font-weight: bold;">Moderate Match</span>
+  {% else %}
+    <span style="color: red; font-weight: bold;">Low Match</span>
+  {% endif %}
+{% endif %}
+{%endif%}
 
         {% if job.get('minimumSalary') and job.get('maximumSalary') %}
           <p>Salary: £{{ "{:,}".format(job.get('minimumSalary')) }} - £{{ "{:,}".format(job.get('maximumSalary')) }}</p>
@@ -127,13 +127,16 @@
     </ul>
 
     {% else %}
-    <p>No jobs available at the moment.</p>
+    <p>Error fetching jobs, please try again later.</p>
     {% endif %}
 
     <form method="GET" action="{{ url_for('home_page') }}">
       <input type="hidden" name="keywords" value="{{ search_keywords }}">
       <input type="hidden" name="location" value="{{ location }}">
       <input type="hidden" name="page" value="{{ page + 1 }}">
+      {% if show_all %}
+      <input type="hidden" name="all" value="1">
+       {% endif %}
       <button type="submit" class="more">View more jobs</button>
     </form>
 

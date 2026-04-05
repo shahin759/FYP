@@ -2,10 +2,10 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: Arial, Helvetica, sans-serif;
 }
 
 body {
+  font-family: Arial;
     background-color: #f4f6f9;
     padding: 40px 20px;
 }
@@ -30,7 +30,7 @@ body {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    font-size: 14px;
+    font-size: 0.875em;
 }
 
 .entrybox:focus {
@@ -109,3 +109,80 @@ body {
     from { transform: translateX(15px); opacity: 0; }
     to   { transform: translateX(0);    opacity: 1; }
   }
+  body.high-contrast {
+    background: #000;
+    color: #fff;
+  }
+  
+  body.high-contrast .Login {
+    background: #111;
+    color: #fff;
+    border: 1px solid #fff;
+    box-shadow: none;
+  }
+  
+  body.high-contrast .Login h1 {
+    color: #fff;
+  }
+  
+  body.high-contrast .entrybox {
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+  }
+  
+  body.high-contrast .entrybox::placeholder {
+    color: #ccc;
+  }
+  
+  body.high-contrast .login {
+    background: #00ffff;
+    color: #000;
+  }
+  
+  body.high-contrast .login:hover {
+    background: #00d9ff;
+  }
+  
+  body.high-contrast .forgot_password {
+    background: #ff4d4d;
+    color: #000;
+  }
+  
+  body.high-contrast .forgot_password:hover {
+    background: #ff0000;
+  }
+  
+  body.high-contrast .signup {
+    background: #000;
+    color: #00ffff;
+    border: 1px solid #00ffff;
+  }
+  
+  body.high-contrast .signup:hover {
+    background: #00ffff;
+    color: #000;
+  }
+  
+  body.high-contrast .flash.success {
+    background: #00cc00;
+  }
+  
+  body.high-contrast .flash.error {
+    background: #ff4d4d;
+  }
+  @media (max-width: 768px) {
+    .Login {
+        margin: 20px 10px;
+        padding: 20px;
+    }
+
+    .entrybox {
+        font-size: 1em;
+    }
+
+    .login, .signup, .forgot_password {
+        font-size: 1em;
+        padding: 12px;
+    }
+}

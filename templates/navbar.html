@@ -6,20 +6,28 @@
   </a>
 </div>
     <ul class="nav-links">
-      
-      <li><a href="{{ url_for('home_page') }}" class="{% if request.endpoint == 'home_page' %}active{% endif %}">Home</a></li>
-      {%if session.get('user')%}
-      <li><a href="{{ url_for('saved_jobs') }}" class="{% if request.endpoint == 'saved_jobs' %}active{% endif %}">Saved jobs</a></li>
-      {%endif%}
-      <li><a href="{{ url_for('courses_page') }}" class="{% if request.endpoint == 'coureses' %}active{% endif %}">Courses</a></li>
-      <li><a href="{{ url_for('account_page') }}" class="{% if request.endpoint == 'account' %}active{% endif %}">Profile</a></li>
-      <li><a href="{{ url_for('upload_cv')}}" class ="{% if request.endpoint == 'upload_cv' %} active {% endif %}">Upload CV </a></li>
-      {%if session.get('user')%}
-      <li><a href="{{url_for('logout')}}"> Logout</a></li>
-      {%else%}
-      <li><a href="{{ url_for('login_page') }}" class="{% if request.endpoint == 'login_page' %}active{% endif %}">Login</a></li>
-      {%endif%}
-      
+      <li><a href="{{ url_for('home_page') }}"><img src="{{ url_for('static', filename='home.png') }}" class="nav-icon"><span>Home</span></a></li>
+    
+    {% if session.get('user') %}
+    <li><a href="{{ url_for('saved_jobs') }}" class="{% if request.endpoint == 'saved_jobs' %}active{% endif %}"><img src="{{ url_for('static', filename='save-instagram.png') }}" class="nav-icon" alt="Saved Jobs"><span>Saved Jobs</span></a></li>
+    {% endif %}
+    
+    <li><a href="{{ url_for('courses_page') }}" class="{% if request.endpoint == 'courses_page' %}active{% endif %}"><img src="{{ url_for('static', filename='book.png') }}" class="nav-icon" alt="Courses"><span>Courses</span></a></li>
+    <li><a href="{{ url_for('account_page') }}" class="{% if request.endpoint == 'account_page' %}active{% endif %}"><img src="{{ url_for('static', filename='profile.png') }}" class="nav-icon" alt="Profile"><span>Profile</span></a></li>
+    <li><a href="{{ url_for('upload_cv') }}" class="{% if request.endpoint == 'upload_cv' %}active{% endif %}"><img src="{{ url_for('static', filename='upload.png') }}" class="nav-icon" alt="Upload CV"><span>Upload CV</span></a></li>
+    
+    {% if session.get('user') %}
+    <li><a href="{{ url_for('logout') }}" class="{% if request.endpoint == 'logout' %}active{% endif %}"><img src="{{ url_for('static', filename='logout.png') }}" class="nav-icon" alt='Logout'><span>Logout</span></a></li>
+    {% else %}
+    <li><a href="{{ url_for('login_page') }}" class="{% if request.endpoint == 'login_page' %}active{% endif %}"><img src="{{ url_for('static', filename='logout.png') }}" class="nav-icon" alt='Login'><span>Login</span></a></li>
+    {% endif %}
+
+    <div class="accessibility-controls">
+      <button id="maximise" class="access-btn"><img src="{{ url_for('static', filename='maximise.png') }}" class="maximise-icon"> </button>
+      <button id="minimise" class="access-btn"><img src="{{ url_for('static', filename='minimise.png') }}" class="minimise-icon"></button>
+  </div>
+  <button id="high-contrast" class="access-btn">High Contrast</button>
+  </div>
       
     </ul>
   </nav>

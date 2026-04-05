@@ -2,15 +2,16 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 body {
+  font-family: Arial, Helvetica, sans-serif;
   background-color: #f4f6f9;
   padding: 20px;
 }
 
 h1 {
+  font-size: 0.95em;
   text-align: center;
   margin: 20px 0;
 }
@@ -29,6 +30,7 @@ form {
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  font-size: 0.95em;
 }
 
 .entrybox:focus {
@@ -44,6 +46,7 @@ form {
   color: white;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 0.875em;
 }
 
 .loged:hover {
@@ -83,6 +86,7 @@ form {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-size: 0.9em;
 }
 
 .delete-form {
@@ -99,7 +103,7 @@ form {
   color: red;
   font-weight: bold;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.875em;
 }
 
 .delete-btn:hover {
@@ -117,6 +121,7 @@ form {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  font-size: 0.9em;
 }
 
 .dropdown {
@@ -124,6 +129,7 @@ form {
   border: 1px solid #ccc;
   border-radius: 5px;
   min-width: 220px;
+  font-size: 0.95em;
 }
 
 .save-btn {
@@ -133,6 +139,7 @@ form {
   color: white;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 0.875em;
 }
 
 .save-btn:hover {
@@ -143,6 +150,7 @@ p {
   max-width: 900px;
   margin: 0 auto 15px auto;
   color: #555;
+  font-size: 0.95em;
 }
 
 .flash-container {
@@ -163,9 +171,95 @@ p {
   font-weight: 500;
   color: white;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-size: 0.875em;
 }
 
 .flash.success { background-color: #28a745; }
 .flash.error { background-color: #dc3545; }
-.flash.info { background-color: #007bff; }
 .flash.warning { background-color: #ffc107; color: #222; }
+
+body.high-contrast {
+  background: #000;
+  color: #fff;
+}
+
+body.high-contrast form,
+body.high-contrast .skill-item,
+body.high-contrast .goal-item {
+  background: #111;
+  color: #fff;
+  border: 1px solid #fff;
+  box-shadow: none;
+}
+
+body.high-contrast .entrybox,
+body.high-contrast .dropdown {
+  background: #000;
+  color: #fff;
+  border: 1px solid #fff;
+}
+
+body.high-contrast .entrybox::placeholder {
+  color: #ccc;
+}
+
+body.high-contrast .loged,
+body.high-contrast .save-btn {
+  background: #00ffff;
+  color: #000;
+}
+
+body.high-contrast .loged:hover,
+body.high-contrast .save-btn:hover {
+  background: #00d9ff;
+}
+
+body.high-contrast .delete-btn {
+  color: #ff4d4d;
+}
+
+body.high-contrast .delete-btn:hover {
+  color: #ff0000;
+}
+
+body.high-contrast p,
+body.high-contrast h1 {
+  color: #fff;
+}
+
+body.high-contrast .flash.success {
+  background: #00cc00;
+}
+
+body.high-contrast .flash.error {
+  background: #ff4d4d;
+}
+@media (max-width: 768px) {
+  body {
+      padding: 10px;
+  }
+
+  .skill-input,
+  .goals-input,
+  .form-group {
+      flex-direction: column;
+  }
+
+  .skill-input .entrybox,
+  .goals-input .entrybox {
+      min-width: 100%;
+  }
+
+  .dropdown {
+      width: 100%;
+  }
+
+  .loged, .save-btn {
+      width: 100%;
+  }
+
+  .goal-item {
+      flex-direction: column;
+      align-items: stretch;
+  }
+}

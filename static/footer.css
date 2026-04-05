@@ -3,7 +3,7 @@
     padding: 30px 20px;
     margin-top: 40px;
     border-top: 1px solid #ddd;
-    font-size: 14px;
+     font-size: 0.875em;;
 }
 
 .footer-container {
@@ -16,12 +16,12 @@
 
 .footer h4 {
     margin-bottom: 10px;
-    font-size: 14px;
-    color: #333;
+    font-size: 0.875em;
+    color: #454444;
 }
 
 .footer a {
-    color: #666;             
+    color: #646161;             
     display: block;          
     margin-bottom: 6px;
     background: none;       
@@ -37,6 +37,27 @@
 .footer-bottom {
     text-align: center;
     margin-top: 20px;
-    color: #777;
-    font-size: 13px;
+    color: #7d7d7d;
+    font-size: 0.875em;
 }
+body.high-contrast .footer {
+    background: #000;
+    color: #fff;
+    border-top: 1px solid #fff;
+  }
+  
+  body.high-contrast .footer h4 {
+    color: #fff;
+  }
+  
+  body.high-contrast .footer a {
+    color: #00ffff;
+  }
+  
+  body.high-contrast .footer a:hover {
+    color: #fff;
+  }
+  
+  body.high-contrast .footer-bottom {
+    color: #ccc;
+  }
