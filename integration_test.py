@@ -1,5 +1,5 @@
 import unittest
-from app import app, db, User, Skill, UserSkill, SavedJobs
+from app import app, db, User, Skill, UserSkill, SavedJobs, load_skills, user_content_profile, calculate_match
 from werkzeug.security import generate_password_hash
 
 class IntegrationTests(unittest.TestCase):
@@ -108,4 +108,27 @@ class IntegrationTests(unittest.TestCase):
             'email': 'user@gmail.com',
             'password': 'Password@123','confirm-password': 'Password@123'}, follow_redirects=True)
         self.assertIn(b'Email already exists, signin to your account', response.data)
+    
+    def test_password_mismatch(self):
+        response = self.client.post('/signup', data={
+            'firstname': 'user','lastname': 'user',
+            'email': 'user2@gmail.com',
+            'password': 'Password@123','confirm-password': 'Password123'}, follow_redirects=True)
+        self.assertIn(b'Passwords do not match', response.data)
 
+    def test_job_scoring(self):
+        self.client.post('/login', data={
+            'email': 'user@gmail.com',
+            'password': 'Password@123'
+        })
+      
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+
+        combined_skills=['python','sql','java','oop']   
+        job_skills = ['python', 'sql', 'excel']
+        profile_text='python sql java data analyst junior'
+        job_desc='data analyst with experience in python , sql and excel'
+        job_title = 'junior Data Analyst'
+        score = calculate_match(combined_skills, profile_text, job_skills, job_desc, job_title)
+        self.assertGreater(score, 50)
