@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Seeker - Job Listings</title>
+  <title>Upload CV</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='upload_cv.css') }}">
   <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
   
@@ -73,7 +73,7 @@
     
     {% if user.career_goal %}
     <div class="goal-item">
-      {{ user.career_goal }}
+      Your career goal: {{ user.career_goal }}
       <form method="POST" action="{{ url_for('upload_cv') }}" class="delete-form">
         <input type="hidden" name="action" value="delete_goal">
         <input type="hidden" name="career_goal" value="{{ user.career_goal }}">
@@ -88,7 +88,7 @@
     <input type="hidden" name="action" value="save_experience">
   
     <div class="form-group">
-      <select id="experience" name="experience" class="dropdown">
+      <select id="experience" name="experience" class="experience-dropdown">
         <option value="">Select your experience level</option>
         <option value="Junior" {% if user.experience_level == "Junior" %}selected{% endif %}>Junior</option>
         <option value="Mid-level" {% if user.experience_level == "Mid-level" %}selected{% endif %}>Mid-level</option>

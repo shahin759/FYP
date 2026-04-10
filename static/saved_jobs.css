@@ -26,13 +26,16 @@
     gap: 15px;
   }
   
-  .job-card {
+ 
+  .no-jobs {
     background: white;
+    padding: 10px;
+    border-radius: 4px;
     padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   }
-  
+  .browse{
+    text-align: center;
+  }
   .job-card h2 {
     margin-bottom: 8px;
     font-size: 18px;
@@ -164,4 +167,10 @@
   
   body.high-contrast .flash.error {
     background: #ff4d4d;
+  }
+
+  body.high-contrast .no-jobs{
+    background: #000;
+    color: #00ffff;
+    border: 1px solid #00ffff;
   }

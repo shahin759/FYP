@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Saved Jobs - Seeker</title>
+  <title>Saved Jobs</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='saved_jobs.css') }}">
   <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
 
@@ -52,9 +52,14 @@
         {% endfor %}
 
     {% else %}
-  
-<p>No jobs saved.</p>
-<a href="{{ url_for('home_page') }}" class="browse-btn">Browse Jobs</a>
+<div class="no-jobs">
+<h1><p>No saved jobs</p></h1>
+</div>
+<br>
+<div class="browse">
+  <a href="{{ url_for('home_page') }}" class="browse-btn">Browse Jobs</a>
+</div>
+
 {% endif %}
 </div>
 

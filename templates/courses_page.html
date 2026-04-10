@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Seeker - Courses</title>
+  <title>Courses</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='courses_page.css') }}">
   <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
 
@@ -32,13 +32,11 @@
     <div class="search">
       <form method="GET" action="{{ url_for('courses_page') }}" class="search-form">
           <div class="search-field">
-            <input type="text" name="courses" placeholder="Search for courses"
-                   value="{{ search_course or '' }}" class="search-input">
+            <input type="text" name="courses" placeholder="Search for courses"value="{{ search_course or '' }}" class="search-input">
           </div>
-    
           <button type="submit" class="search-button">Search</button>
           {% if search_course %}
-            <a href="{{ url_for('courses_page') }}" class="clear-btn">Clear</a>
+            <a href="{{ url_for('courses_page') }}" class="search-button">Clear</a>
           {% endif %}
         </div>
       </form>

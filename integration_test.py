@@ -1,0 +1,111 @@
+import unittest
+from app import app, db, User, Skill, UserSkill, SavedJobs
+from werkzeug.security import generate_password_hash
+
+class IntegrationTests(unittest.TestCase):
+    
+    def setUp(self):
+        app.config['TESTING'] = True
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+        self.client = app.test_client()
+        
+        with app.app_context():
+            db.session.remove()
+            db.drop_all()
+            db.create_all()
+            user = User(
+                name="test test",email="user@gmail.com",password=generate_password_hash("Password@123"),career_goal="data analyst",experience_level="Junior")
+            db.session.add(user)
+            db.session.commit()
+    
+    
+    def login(self):
+        return self.client.post('/login', data={'email': 'user@gmail.com','password': 'Password@123'
+        }, follow_redirects=True)
+    
+    def test_signup(self):
+        response = self.client.post('/signup', data={
+            'firstname': 'user','lastname': 'user',
+            'email': 'user2@gmail.com',
+            'password': 'Password@123','confirm-password': 'Password@123'}, follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.client.post('/login', data={
+            'email': 'user2@gmail.com',
+            'password': 'Password@123'
+        }, follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+
+    def test_incorrect_password(self):
+        response= self.client.post('/login', data={
+           'email': 'user@gmail.com',
+            'password':'password123'
+        }, follow_redirects=True)
+        self.assertIn(b'Invalid email or password', response.data)
+    
+    def test_correct_password(self):
+        response= self.client.post('/login', data={
+           'email': 'user@gmail.com',
+            'password':'Password@123'
+        }, follow_redirects=True)
+        self.assertIn(b'Login successful!', response.data)
+    
+    def test_home_page(self):
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_job_details_page(self):
+        response=self.client.get('/job/9999999999999',follow_redirects=True)
+        self.assertIn(b'This job may have expired, please browse different jobs', response.data)
+
+    def test_add_skill(self):
+        self.client.post('/login', data={
+            'email': 'user@gmail.com',
+            'password': 'Password@123'
+        })
+        self.client.post('/upload_cv', data={
+            'action': 'add_skill',
+            'skills': 'python'
+        })
+        with app.app_context():
+            user = User.query.filter_by(email='user@gmail.com').first()
+            user_skills = [us.skill.name for us in user.skills]
+            self.assertIn('python', user_skills)
+    
+    def test_update_email(self):
+        self.client.post('/login', data={
+            'email': 'user@gmail.com',
+            'password': 'Password@123'
+        })
+        response = self.client.post('/edit_account', data={
+            'action': 'update_email',
+            'email': 'user123@gmail.com'
+        }, follow_redirects=True)
+        self.assertEqual(response.status_code, 200)
+    
+    def test_add_invalid_skill(self):
+        self.client.post('/login', data={
+            'email': 'user@gmail.com',
+            'password': 'Password@123'
+        })
+
+        response = self.client.post('/upload_cv', data={
+        'action': 'add_skill',
+        'skills': 'hello'},follow_redirects=True)
+        self.assertIn(b'is not a valid skill', response.data)
+
+    def test_logout(self):
+        self.client.post('/login', data={
+            'email': 'user@gmail.com',
+            'password': 'Password@123'
+        })
+        response=self.client.get('/logout', follow_redirects=True)
+        self.assertIn(b'Logged out', response.data)
+
+    def test_duplicate_email(self):
+        response = self.client.post('/signup', data={
+            'firstname': 'user','lastname': 'user',
+            'email': 'user@gmail.com',
+            'password': 'Password@123','confirm-password': 'Password@123'}, follow_redirects=True)
+        self.assertIn(b'Email already exists, signin to your account', response.data)
+

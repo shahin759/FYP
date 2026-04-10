@@ -8,9 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const saveBtn = document.querySelector(".save-job-btn");
         if (saveBtn) {
             const jobId = saveBtn.dataset.jobId;
-            fetch(`/job/${jobId}/match_reasoning`)
-                .then(r => r.json())
-                .then(data => {
+            fetch(`/job/${jobId}/match_reasoning`).then(r => r.json()).then(data => {
                     if (data.reasoning) {
                         reasoning.textContent = data.reasoning;
                     } else {
@@ -29,7 +27,6 @@ document.addEventListener("DOMContentLoaded", function () {
             if (this.dataset.loading == "true") return;
             this.dataset.loading = "true";
             this.disabled = true;
-
             const jobId = this.dataset.jobId;
 
             try {
@@ -37,7 +34,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     method: "POST",
                     headers: {"Content-Type": "application/json"}
                 });
-
                 const data = await response.json();
 
                 if (data.status === "saved") {
@@ -56,10 +52,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let currentSize = 100;
 
-
     document.getElementById('maximise').addEventListener('click', function () {
     
-        if (currentSize < 150) {
+        if (currentSize < 160) {
             currentSize = currentSize + 10;
             document.body.style.fontSize = currentSize + "%";
     
@@ -68,7 +63,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     
     document.getElementById('minimise').addEventListener('click', function () {
-        if (currentSize > 75) {
+        if (currentSize > 80) {
             currentSize = currentSize - 10;
             document.body.style.fontSize = currentSize + "%";
 

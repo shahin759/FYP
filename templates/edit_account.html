@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Seeker - Job Listings</title>
+  <title>Edit Account Details</Details></title>
   <link rel="stylesheet" href="{{ url_for('static', filename='edit_account.css') }}">
   <link rel="icon" href="{{ url_for('static', filename='logo.png') }}">
   
@@ -35,7 +35,7 @@
   <input type="hidden" name="action" value="update_password">
   <input type="password" id="password" name="password" class="entrybox"  placeholder="Confirm Password"required>
   <br>
-  <input type="password" id="password" name="confirm_password" class="entrybox" placeholder="Confirm Password" required>
+  <input type="password" id="password" name="confirm-password" class="entrybox" placeholder="Confirm Password" required>
   <button type="submit" class="loged">Update password</button>
 </form>
 {%include 'footer.html'%}

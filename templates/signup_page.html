@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Seeker</title>
+    <title>Signup</title>
     <link rel="icon" type="image/png"
     href="{{ url_for('static', filename='images/logo.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='signup_page.css') }}">
@@ -33,7 +33,7 @@
     <input type="lastname" name="lastname" placeholder="Last name" class="entrybox" required><br><br>
     <input type="email" name="email" placeholder="Email" class="entrybox" required><br><br>
     <input type="password" name="password" placeholder="Password" class="entrybox" required><br><br>
-    <input type="password" name="confirm_password" placeholder="Confirm Password" class="entrybox" required><br><br>
+    <input type="password" name="confirm-password" placeholder="Confirm Password" class="entrybox" required><br><br>
     <button type="submit" class="loged">Sign Up</button><br><br>
 
     <button type="button" class="signup" onclick="window.location.href='{{ url_for('login_page') }}'">

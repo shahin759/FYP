@@ -13,8 +13,16 @@
     {% endif %}
     
     <li><a href="{{ url_for('courses_page') }}" class="{% if request.endpoint == 'courses_page' %}active{% endif %}"><img src="{{ url_for('static', filename='book.png') }}" class="nav-icon" alt="Courses"><span>Courses</span></a></li>
-    <li><a href="{{ url_for('account_page') }}" class="{% if request.endpoint == 'account_page' %}active{% endif %}"><img src="{{ url_for('static', filename='profile.png') }}" class="nav-icon" alt="Profile"><span>Profile</span></a></li>
-    <li><a href="{{ url_for('upload_cv') }}" class="{% if request.endpoint == 'upload_cv' %}active{% endif %}"><img src="{{ url_for('static', filename='upload.png') }}" class="nav-icon" alt="Upload CV"><span>Upload CV</span></a></li>
+
+    <div class="dropdown">
+      <li><a href="{{ url_for('account_page') }}" class="{% if request.endpoint == 'account_page' %}active{% endif %}"><img src="{{ url_for('static', filename='profile.png') }}" class="nav-icon" alt="Profile"><span>Profile</span></a></li>
+      <div class="dropdown-content">
+        <a href="{{ url_for('upload_cv') }}" class="{% if request.endpoint == 'upload_cv' %}active{% endif %}">Upload CV</a>
+        <a href="{{ url_for('account_page') }}" class="{% if request.endpoint == 'account_page' %}active{% endif %}">View Account Details</a>
+        <a href="{{ url_for('edit_account') }}" class="{% if request.endpoint == 'edit_account' %}active{% endif %}">Edit Account Details</a>
+      </div>
+    </div>
+
     
     {% if session.get('user') %}
     <li><a href="{{ url_for('logout') }}" class="{% if request.endpoint == 'logout' %}active{% endif %}"><img src="{{ url_for('static', filename='logout.png') }}" class="nav-icon" alt='Logout'><span>Logout</span></a></li>
@@ -23,10 +31,10 @@
     {% endif %}
 
     <div class="accessibility-controls">
-      <button id="maximise" class="access-btn"><img src="{{ url_for('static', filename='maximise.png') }}" class="maximise-icon"> </button>
-      <button id="minimise" class="access-btn"><img src="{{ url_for('static', filename='minimise.png') }}" class="minimise-icon"></button>
+      <button id="maximise" class="accessibility-btn"><img src="{{ url_for('static', filename='maximise.png') }}" class="maximise-icon"> </button>
+      <button id="minimise" class="accessibility-btn"><img src="{{ url_for('static', filename='minimise.png') }}" class="minimise-icon"></button>
   </div>
-  <button id="high-contrast" class="access-btn">High Contrast</button>
+  <button id="high-contrast" class="accessibility-btn">High Contrast</button>
   </div>
       
     </ul>
