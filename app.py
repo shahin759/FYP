@@ -400,7 +400,7 @@ def is_valid_password(password, confirm_password):
     return True, None
 
     
-@app.route('/account-page', methods=['GET']) #account page, allowing users to view their details
+@app.route('/account_page', methods=['GET']) #account page, allowing users to view their details
 def account_page():
     user = get_logged_user()
     if not user:
@@ -482,7 +482,7 @@ def upload_cv():
                 db.session.commit()
                 flash("Skill removed", "success")
 
-        elif action=="add_goals":
+        elif action=="add_career_goal":
           goals_input=request.form.get("goals")
           user.career_goal=goals_input
           db.session.commit()

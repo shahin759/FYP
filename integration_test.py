@@ -1,4 +1,5 @@
 import unittest
+import time
 from app import app, db, User, Skill, UserSkill, SavedJobs, load_skills, user_content_profile, calculate_match
 from werkzeug.security import generate_password_hash
 
@@ -132,3 +133,39 @@ class IntegrationTests(unittest.TestCase):
         job_title = 'junior Data Analyst'
         score = calculate_match(combined_skills, profile_text, job_skills, job_desc, job_title)
         self.assertGreater(score, 50)
+
+    def test_job_low_match(self):
+        self.client.post('/login', data={
+            'email': 'user2@gmail.com',
+            'password': 'Password@123'
+        })
+        self.client.post('/upload_cv', data={
+            'action': 'add_career_goal',
+            'career_goal': 'Teacher'
+        })
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        combined_skills=['teaching ','communication','collaboration']   
+        job_skills = ['python', 'sql', 'excel']
+        profile_text='teaching communication collaboration teacher'
+        job_desc='data analyst with experience in python , sql and excel'
+        job_title = 'junior Data Analyst'
+        score = calculate_match(combined_skills, profile_text, job_skills, job_desc, job_title)
+        self.assertLess(score, 20)
+    
+    def test_access(self):
+        response = self.client.get('/account_page', follow_redirects=True)
+        self.assertIn(b'Please Login first', response.data)
+    
+    def test_scoring_time(self):
+        self.client.post('/login', data={
+            'email': 'user@gmail.com',
+            'password': 'Password@123'
+        })
+        start=time.time()
+
+        response = self.client.get('/')
+        end=time.time()
+        self.assertEqual(response.status_code, 200)
+        self.assertLess(end - start, 20)
+
