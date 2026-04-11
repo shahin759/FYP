@@ -64,7 +64,7 @@
   <form method="POST" action="{{ url_for('upload_cv') }}">
     <input type="hidden" name="action" value="add_career_goal">
   
-    <div class="goals-input">
+    <div class="career-goal-input">
         <input type="text" name="career_goal" class="entrybox"
                placeholder="e.g. Software Engineer, Data Analyst" required>
         <button type="submit" class="loged">Add</button>
@@ -98,7 +98,13 @@
       <button type="submit" class="save-btn">Save</button>
     </div>
   </form>
-  <p>{{user.experience_level}}</p>
+  {% if not user.experience_level %}
+  <div class = "experience-level">  <p>No experience level set</p></div>
+  {%else%}
+  <div class = "experience-level">  <p>Your experience level:{{user.experience_level}}</p></div>
+  {%endif%}
+
+
   {%include 'footer.html'%}
   <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>

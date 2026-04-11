@@ -100,14 +100,14 @@ form {
 .delete-btn {
   background: none;
   border: none;
-  color: red;
+  color: #dc3545;
   font-weight: bold;
   cursor: pointer;
   font-size: 0.875em;
 }
 
 .delete-btn:hover {
-  color: darkred;
+  color: rgb(165, 4, 4);
 }
 
 .goal-item {
@@ -123,7 +123,10 @@ form {
   gap: 10px;
   font-size: 0.9em;
 }
-
+body.goal-item p,
+body.high-contrast h1 {
+  color: #fff;
+}
 .experience-dropdown {
   padding: 10px;
   border: 1px solid #ccc;
@@ -149,10 +152,33 @@ form {
 p {
   max-width: 900px;
   margin: 0 auto 15px auto;
-  color: #555;
+  color: #000;
   font-size: 0.95em;
 }
+.remove-all-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.875em;
+}
 
+.remove-all-btn:hover {
+  background-color: #0056b3;
+}
+
+.experience-level{
+
+  max-width: 900px;
+  margin: 0 auto 15px auto;
+  background: white;
+  padding: 12px 15px;
+  border-radius: 8px;
+  gap: 10px;
+  font-size: 0.9em;
+}
 .flash-container {
   position: fixed;
   top: 20px;
@@ -185,7 +211,8 @@ body.high-contrast {
 
 body.high-contrast form,
 body.high-contrast .skill-item,
-body.high-contrast .goal-item {
+body.high-contrast .goal-item ,
+body.high-contrast .experience-level{
   background: #111;
   color: #fff;
   border: 1px solid #fff;
@@ -218,6 +245,12 @@ body.high-contrast .delete-btn {
   color: #ff4d4d;
 }
 
+body.high-contrast .remove-all-btn {
+  background:  #00ffff;
+  color: #000;
+}
+
+
 body.high-contrast .delete-btn:hover {
   color: #ff0000;
 }
@@ -234,6 +267,7 @@ body.high-contrast .flash.success {
 body.high-contrast .flash.error {
   background: #ff4d4d;
 }
+
 @media (max-width: 768px) {
   body {
       padding: 10px;

@@ -483,8 +483,8 @@ def upload_cv():
                 flash("Skill removed", "success")
 
         elif action=="add_career_goal":
-          goals_input=request.form.get("goals")
-          user.career_goal=goals_input
+          career_goal_input=request.form.get("career_goal")
+          user.career_goal=career_goal_input
           db.session.commit()
           flash("carrer goal added", "success")
 
