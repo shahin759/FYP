@@ -4,7 +4,7 @@ from app import allowed_file,skill_overlap_score,tfidf_cosine_score,extract_skil
 class seeker_test(unittest.TestCase):
 
     def test_allowed_file(self):
-        test_cases =[("johncv.pdf",True),("JOHNCV.PDF",True),("johncv.doc",False)]
+        test_cases =[("johncv.pdf",True),("JOHNCV.PDF",True),("johncv.doc",False),("cv",False)]
         for cases in test_cases:
             text=cases[0]
             output=cases[1]
@@ -28,9 +28,9 @@ class seeker_test(unittest.TestCase):
 
 
     def test_extract_skills_from_description(self):
-        cv="experience in python sql java and oop"
+        description="looking for an experienced individual in python sql java and oop"
         skills_list=["python","sql","java","oop"]
-        result=extract_skills_from_description(cv,skills_list)
+        result=extract_skills_from_description(description,skills_list)
         self.assertEqual(result,['java', 'oop', 'python', 'sql'])
 
     def test_tfidf_cosine_score(self):
@@ -41,7 +41,9 @@ class seeker_test(unittest.TestCase):
         score=tfidf_cosine_score("python sql java and oop","graphic design")
         self.assertLess(score,20)
     
-
+    def test_tfidf_cosine_score_low_empty(self):
+        score=tfidf_cosine_score("python sql java and oop","")
+        self.assertEqual(score,0)
 
     def test_is_valid_email(self):
         test_cases =[("bob@gmail.com",True),("bob.com",False),("bob",False)]
@@ -52,14 +54,14 @@ class seeker_test(unittest.TestCase):
     
 
     def test_extract_experience_level(self):
-        test_cases =[("senior developer","Senior"),("junior developer","Junior"),("software developer","Not specified")]
+        test_cases =[("senior developer","Senior"),("junior developer","Junior"),("mid-level software engineer", "Mid-level"),("software developer","Not specified")]
         for cases in test_cases:
             text=cases[0]
             output=cases[1]
             self.assertEqual(extract_experience_level(text),output)
     
     def test_is_valid_password(self):
-        test_cases=[("Password@123","Password@123",True),("password123","password123",False)]
+        test_cases=[("Password@123","Password@123",True),("password123","password123",False),("Password@123","Password123",False)]
 
         for password, confirm_password, output in test_cases:
             result = is_valid_password(password, confirm_password)
@@ -80,7 +82,6 @@ class seeker_test(unittest.TestCase):
         
     
 
-
     def test_calculate_low_match(self):
         combined_skills=['teaching ','communication','collaboration']   
         job_skills = ['python', 'sql', 'excel']
@@ -91,4 +92,8 @@ class seeker_test(unittest.TestCase):
         score=calculate_match(combined_skills, profile_text, job_skills, job_desc, job_title)
         self.assertLess(score,20)
     
-    
+    def test_cv_extract(self):
+        cv_text="I am highly skilled in python ,excel ,scikit-learn and mysql"
+        skills_list=['python', 'scikit-learn', 'excel','mysql']
+        result = extract_skills_from_description(cv_text, skills_list)
+        self.assertEqual(result,['excel', 'mysql', 'python', 'scikit-learn'])

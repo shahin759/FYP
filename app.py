@@ -404,7 +404,7 @@ def is_valid_password(password, confirm_password):
 def account_page():
     user = get_logged_user()
     if not user:
-        flash('Please Login first', 'error')
+        flash('Login first', 'error')
         return redirect(url_for('login_page'))
     
     return render_template('account_page.html', user=user)

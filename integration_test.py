@@ -14,28 +14,32 @@ class IntegrationTests(unittest.TestCase):
             db.session.remove()
             db.drop_all()
             db.create_all()
-            user = User(
-                name="test test",email="user@gmail.com",password=generate_password_hash("Password@123"),career_goal="data analyst",experience_level="Junior")
+            user = User(name="test test",email="user@gmail.com",password=generate_password_hash("Password@123"),career_goal="data analyst",experience_level="Junior")
             db.session.add(user)
             db.session.commit()
     
     
-    def login(self):
-        return self.client.post('/login', data={'email': 'user@gmail.com','password': 'Password@123'
+    def test_login(self):
+        response = self.client.post('/login', data={
+            'email': 'user@gmail.com',
+            'password': 'Password@123'
         }, follow_redirects=True)
+
+        self.assertIn(b'Login successful!', response.data)
     
     def test_signup(self):
         response = self.client.post('/signup', data={
             'firstname': 'user','lastname': 'user',
             'email': 'user2@gmail.com',
             'password': 'Password@123','confirm-password': 'Password@123'}, follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
-        
-        response = self.client.post('/login', data={
-            'email': 'user2@gmail.com',
-            'password': 'Password@123'
-        }, follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
+
+        with app.app_context():
+            user = User.query.filter_by(email='user2@gmail.com').first()
+            self.assertIsNotNone(user)
+            self.assertNotEqual(user.password, 'Password@123')  
+            self.assertIn(b'Account created successfully! Please login.', response.data)
+    
+
 
     def test_incorrect_password(self):
         response= self.client.post('/login', data={
@@ -82,7 +86,10 @@ class IntegrationTests(unittest.TestCase):
             'action': 'update_email',
             'email': 'user123@gmail.com'
         }, follow_redirects=True)
-        self.assertIn(b'Email updated', response.data)
+        with app.app_context():
+            user = User.query.filter_by(name='test test').first()
+            self.assertEqual(user.email, 'user123@gmail.com')
+            self.assertIn(b'Email updated', response.data)
     
     def test_update_no_email(self):
         self.client.post('/login', data={
@@ -174,7 +181,7 @@ class IntegrationTests(unittest.TestCase):
 
     def test_job_low_match(self):
         self.client.post('/login', data={
-            'email': 'user2@gmail.com',
+            'email': 'user@gmail.com',
             'password': 'Password@123'
         })
         self.client.post('/upload_cv', data={
@@ -193,7 +200,7 @@ class IntegrationTests(unittest.TestCase):
     
     def test_access(self):
         response = self.client.get('/account_page', follow_redirects=True)
-        self.assertIn(b'Please Login first', response.data)
+        self.assertIn(b'Login first', response.data)
     
     def test_scoring_time(self):
         self.client.post('/login', data={
@@ -224,6 +231,10 @@ class IntegrationTests(unittest.TestCase):
             'action': 'delete_skill',
             'skill_id': skill_id
             }, follow_redirects=True)
+        with app.app_context():
+            user = User.query.filter_by(email='user@gmail.com').first()
+            user_skills = [us.skill.name for us in user.skills]
+            self.assertNotIn('python', user_skills)
             self.assertIn(b'Skill removed', response.data)
         
     def test_contact_us(self):
@@ -239,3 +250,29 @@ class IntegrationTests(unittest.TestCase):
         'message': 'Login issue'
         }, follow_redirects=True)
         self.assertIn(b'Contact Us', response.data)
+
+    def test_saved_jobs(self):
+        self.client.post('/login', data={
+            'email': 'user@gmail.com',
+            'password': 'Password@123'
+        })
+        response = self.client.post('/save_job/10000', follow_redirects=True)
+        data = response.get_json()
+        self.assertEqual(data['status'], 'saved')
+
+        with app.app_context():
+            user = User.query.filter_by(email='user@gmail.com').first()
+            saved= SavedJobs.query.filter_by(user_id=user.id, job_id=10000).first()
+            self.assertIsNotNone(saved)
+    
+    def test_upload_access(self):
+         response=self.client.post('/upload_cv' ,follow_redirects=True)
+         self.assertIn(b'Login first', response.data)
+
+    def test_access(self):
+        response = self.client.get('/account_page', follow_redirects=True)
+        self.assertIn(b'Login first', response.data)
+
+    def test_edit_account_access(self):
+         response=self.client.post('/edit_account', follow_redirects=True)
+         self.assertIn(b'Login first', response.data)
