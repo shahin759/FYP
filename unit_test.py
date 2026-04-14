@@ -10,6 +10,10 @@ class seeker_test(unittest.TestCase):
             output=cases[1]
             self.assertEqual(allowed_file(text),output)
     
+    def test_skill_overlap_score(self):
+        score = skill_overlap_score(['python','sql'],['python','sql','java','oop'])
+        self.assertEqual(score,50)
+    
     def test_skill_overlap_score_100(self):
         score = skill_overlap_score(['python','sql','java','oop'],['python','sql','java','oop'])
         self.assertEqual(score,100)
@@ -18,6 +22,11 @@ class seeker_test(unittest.TestCase):
         score = skill_overlap_score(['graphic design'],['python','sql','java','oop'])
         self.assertEqual(score,0)
     
+    def test_skill_overlap_score_empty(self):
+        score = skill_overlap_score([],['python','sql','java','oop'])
+        self.assertEqual(score,0)
+
+
     def test_extract_skills_from_description(self):
         cv="experience in python sql java and oop"
         skills_list=["python","sql","java","oop"]
@@ -32,8 +41,9 @@ class seeker_test(unittest.TestCase):
         score=tfidf_cosine_score("python sql java and oop","graphic design")
         self.assertLess(score,20)
     
+
+
     def test_is_valid_email(self):
-        email="bob@gmail.com"
         test_cases =[("bob@gmail.com",True),("bob.com",False),("bob",False)]
         for cases in test_cases:
             text=cases[0]
@@ -70,3 +80,15 @@ class seeker_test(unittest.TestCase):
         
     
 
+
+    def test_calculate_low_match(self):
+        combined_skills=['teaching ','communication','collaboration']   
+        job_skills = ['python', 'sql', 'excel']
+        profile_text='teaching communication collaboration teacher'
+        job_desc='data analyst with experience in python , sql and excel'
+        job_title = 'junior Data Analyst'
+
+        score=calculate_match(combined_skills, profile_text, job_skills, job_desc, job_title)
+        self.assertLess(score,20)
+    
+    

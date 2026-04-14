@@ -82,7 +82,18 @@ class IntegrationTests(unittest.TestCase):
             'action': 'update_email',
             'email': 'user123@gmail.com'
         }, follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Email updated', response.data)
+    
+    def test_update_no_email(self):
+        self.client.post('/login', data={
+            'email': 'user@gmail.com',
+            'password': 'Password@123'
+        })
+        response = self.client.post('/edit_account', data={
+            'action': 'update_email',
+            'email': ''
+        }, follow_redirects=True)
+        self.assertIn(b'Email cannot be empty', response.data)
     
     def test_add_invalid_skill(self):
         self.client.post('/login', data={
@@ -94,6 +105,33 @@ class IntegrationTests(unittest.TestCase):
         'action': 'add_skill',
         'skills': 'hello'},follow_redirects=True)
         self.assertIn(b'is not a valid skill', response.data)
+    
+    def test_add_no_skill(self):
+        self.client.post('/login', data={
+            'email': 'user@gmail.com',
+            'password': 'Password@123'
+        })
+
+        response = self.client.post('/upload_cv', data={
+        'action': 'add_skill',
+        'skills': ''},follow_redirects=True)
+        self.assertIn(b'Enter a skill', response.data)
+
+    def test_add_existing_skill(self):
+        self.client.post('/login', data={
+            'email': 'user@gmail.com',
+            'password': 'Password@123'
+        })
+        self.client.post('/upload_cv', data={
+        'action': 'add_skill',
+        'skills': 'python'
+        })
+
+
+        response = self.client.post('/upload_cv', data={
+        'action': 'add_skill',
+        'skills': 'python'},follow_redirects=True)
+        self.assertIn(b'You already added that skill', response.data)
 
     def test_logout(self):
         self.client.post('/login', data={
@@ -167,5 +205,37 @@ class IntegrationTests(unittest.TestCase):
         response = self.client.get('/')
         end=time.time()
         self.assertEqual(response.status_code, 200)
-        self.assertLess(end - start, 20)
+        self.assertLess(end - start, 10)
 
+    def test_delete_skill(self):
+        self.client.post('/login', data={
+            'email': 'user@gmail.com',
+            'password': 'Password@123'
+        })
+        self.client.post('/upload_cv', data={
+        'action': 'add_skill',
+        'skills': 'python'
+        })
+        with app.app_context():
+            user = User.query.filter_by(email='user@gmail.com').first()
+            skill_id = user.skills[0].skill_id
+            
+            response = self.client.post('/upload_cv', data={
+            'action': 'delete_skill',
+            'skill_id': skill_id
+            }, follow_redirects=True)
+            self.assertIn(b'Skill removed', response.data)
+        
+    def test_contact_us(self):
+        self.client.post('/login', data={
+            'email': 'user@gmail.com',
+            'password': 'Password@123'
+        })
+
+        response = self.client.post('/contact_us', data={
+        'name': 'test test',
+        'email': 'user@gmail.com',
+        'subject': 'Need help',
+        'message': 'Login issue'
+        }, follow_redirects=True)
+        self.assertIn(b'Contact Us', response.data)

@@ -750,27 +750,28 @@ def logout():
 
 @app.route('/contact_us',methods=["GET", "POST"]) #contact us page, sends form to email
 def contact_us():
-    if request.method=="POST":
-        name= request.form.get("name")
+    user = get_logged_user()
+
+    if request.method == "POST":
+        name = request.form.get("name")
         email = request.form.get("email")
         subject = request.form.get("subject")
-        message= request.form.get("message")
+        message = request.form.get("message")
+
         try:
-            msg = Message(subject=f"Contact Form: {subject}",recipients=[app.config['MAIL_USERNAME']])
-
+            msg = Message(subject=f"Contact Form: {subject}", recipients=[app.config['MAIL_USERNAME']])
             msg.body = f"""
-            Name: {name} 
+            Name: {name}
             Email: {email}
-            Message:{message}"""
-
+            Message: {message}"""
             msg.reply_to = email
             mail.send(msg)
             flash("Form sent", "success")
 
         except Exception as e:
-            flash(f"Error", "error")
+            flash("Error", "error")
 
-    return render_template("contact_us.html")
+    return render_template("contact_us.html", user=user)
 
 
 @app.route('/about_us') #about us page
@@ -1031,9 +1032,12 @@ def tfidf_cosine_score(user_profile_text, job_text): # compares two user profile
         return 0.0
 
     tfidf = TfidfVectorizer(stop_words="english")
-    X = tfidf.fit_transform([user_profile_text, job_text])
+    matrix = tfidf.fit_transform([user_profile_text, job_text])
 
-    return cosine_similarity(X[0:1], X[1:2])[0][0] * 100
+    score = cosine_similarity(matrix[0:1], matrix[1:2])[0][0]
+    result = round(score * 100, 2)
+
+    return result
 
 
 def calculate_match(combined_skills, profile_text, job_skills, job_desc, job_title): 
