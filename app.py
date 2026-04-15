@@ -15,10 +15,14 @@ import io
 import secrets
 import ollama
 import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
-app.secret_key = "12345678"
+app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(16))
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///seeker.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -26,15 +30,18 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'support.seeker@gmail.com'
-app.config['MAIL_PASSWORD'] = 'rdgt kwkr poup zdxg'
-app.config['MAIL_DEFAULT_SENDER'] = 'support.seeker@gmail.com'
+app.config['MAIL_USERNAME'] = os.environ.get("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = os.environ.get("MAIL_PASSWORD")
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get("MAIL_USERNAME")
+
+API_KEY = os.environ.get("REED_API_KEY")
+
+
 
 mail = Mail(app)
 reset_tokens = {}
 db = SQLAlchemy(app)
 
-API_KEY = "7eabd148-3685-4360-be0c-555c97ec868c"
 BASE_URL = "https://www.reed.co.uk/api/1.0"
 
 app.config["CACHE_TYPE"] = "SimpleCache"
@@ -674,12 +681,11 @@ def reset_password(token):
     if request.method=='POST':
         password1=request.form.get('password1')
         password2=request.form.get('password2')
-
-    valid = is_valid_password(password1, password2)
-    if valid[0] == False:
-        flash(valid[1], 'error')
-        return render_template('reset_password.html', token=token, email=email)  
-
+        valid = is_valid_password(password1, password2)
+        
+        if valid[0] == False:
+            flash(valid[1], 'error')
+            return render_template('reset_password.html', token=token, email=email)  
         user = User.query.filter_by(email=email).first()
         if user:
             user.password = generate_password_hash(password1)
