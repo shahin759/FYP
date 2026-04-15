@@ -240,7 +240,7 @@ def job_details(job_id):
             job_experience=job_experience,experience_warning=experience_warning,user=user,is_saved=is_saved)
 
     except requests.RequestException as e:
-        return f"Error fetching job details: {e}", 500
+        return f"Error fetching job details, please try again later: {e}", 500
 
 
 @app.route("/job/<int:job_id>/match_reasoning")   # allows for job details page to show whilst ollama generates
@@ -622,7 +622,7 @@ def edit_account():
             valid = is_valid_password(new_password, confirm_password)
             if valid[0] == False:
                 flash(valid[1], 'error')
-                return redirect(url_for('signup_page'))
+                return redirect(url_for('edit_account'))
                 
 
             user.password = generate_password_hash(new_password)
@@ -675,7 +675,7 @@ def reset_password(token):
         password1=request.form.get('password1')
         password2=request.form.get('password2')
 
-    valid = is_valid_password(password, confirm_password)
+    valid = is_valid_password(password1, password2)
     if valid[0] == False:
         flash(valid[1], 'error')
         return render_template('reset_password.html', token=token, email=email)  
@@ -914,7 +914,7 @@ def get_synonyms(user_goal, first_saved_job=""):
         import traceback
         traceback.print_exc() 
         print(f"Error: {e}")
-        filtered = []
+        return []
         
 
 
@@ -1093,7 +1093,7 @@ def calculate_match(combined_skills, profile_text, job_skills, job_desc, job_tit
     if user_goal:
         if user_goal.lower() in job_title.lower():
             result += 5
-    return round(result, 2)
+    return round(min(result, 100), 2)
     
 
 
