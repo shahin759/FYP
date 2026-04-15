@@ -80,52 +80,37 @@
         <h2>{{ job.get('jobTitle', 'No Title') }}</h2>
         <p>Location: {{ job.get('locationName', 'No location') }}</p>
         <p>Employer: {{ job.get('employerName', 'No employer') }}</p>
-
+    
         {% if job.experience_level and job.experience_level != 'Not specified' %}
           <p>Experience level: {{ job.experience_level }}</p>
         {% endif %}
-
-        {% if user %}
-        
-        {% if user and user.career_goal and user.skills and user.experience_level %}
-  {% set job_exp = job.experience_level or "Not specified" %}
-  {% set user_exp = user.experience_level or "" %}
-  {% set user_goal = user.career_goal or "" %}
-  {% set title = job.get("jobTitle", "") %}
-
-  {% if user_goal.lower() in title.lower() and user_exp.lower() in job_exp.lower() and job_exp != "Not specified" %}
-    <span style="color: green; font-weight: bold;">Strong Match</span>
-  {% elif job.get("match_score", 0) >= 70 %}
-    <span style="color: green; font-weight: bold;">Strong Match</span>
-  {% elif job.get("match_score", 0) >= 40 %}
-    <span style="color: orange; font-weight: bold;">Moderate Match</span>
-  {% else %}
-    <span style="color: red; font-weight: bold;">Low Match</span>
-  {% endif %}
-{% endif %}
-{%endif%}
-
+    
+        {% if user and user.career_goal and user.skills %}
+        <span style="color: {{ job.match_color }}; font-weight: bold;">
+          {{ job.match_label }}
+        </span>
+      {% endif %}
+    
         {% if job.get('minimumSalary') and job.get('maximumSalary') %}
           <p>Salary: £{{ "{:,}".format(job.get('minimumSalary')) }} - £{{ "{:,}".format(job.get('maximumSalary')) }}</p>
         {% else %}
           <p>Salary: Not listed</p>
         {% endif %}
-
+    
         <a href="{{ url_for('job_details', job_id=job['jobId']) }}">
           <button type="button" class="loged">View Job Details</button>
         </a>
-
+    
         {% if session.user %}
         <button class="save-job-btn" data-job-id="{{ job['jobId'] }}">
           <img src="{{ url_for('static', filename='favourite-fill.png' if job['jobId'] in saved_job_ids else 'favourite.png') }}"
-          class="save-icon">
+               class="save-icon">
         </button>
         {% endif %}
-
+    
       </li>
       {% endfor %}
     </ul>
-
     {% else %}
     <p>Error fetching jobs, please try again later.</p>
     {% endif %}

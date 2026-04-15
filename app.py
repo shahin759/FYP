@@ -202,7 +202,8 @@ def job_details(job_id):
                 missing = sorted(job_set - user_set)
 
                 combined_skills, profile_text = user_content_profile(user, skills_list)
-                score = calculate_match(combined_skills, profile_text, job_skills, job_desc, job.get("jobTitle", ""))
+                job_experience = extract_experience_level(job.get("jobTitle", ""))
+                score = calculate_match(combined_skills,profile_text,job_skills,job_desc,job.get("jobTitle", ""),user.experience_level if user else None,job_experience,user.career_goal if user else "")
 
                 match_result = {
                     'score': score,
@@ -833,9 +834,20 @@ def get_scored_jobs(params,user, user_skills, user_profile_text, user_experience
         job_title = job.get("jobTitle", "") or ""
         job_desc_norm = " ".join(str(job_desc).lower().split())
         job_skills = extract_skills_from_description(job_desc_norm, skills_list)
-        job["match_score"] = calculate_match(combined_skills, profile_text, job_skills, job_desc, job_title
-        )
         job["experience_level"] = extract_experience_level(job_title)
+        job["match_score"] = calculate_match(combined_skills, profile_text, job_skills, job_desc, job_title
+        ,user_experience, job["experience_level"],user_goal)
+        score = job["match_score"]
+        
+        if score >=49:
+            job["match_label"] = "Strong Match"
+            job["match_color"] = "green"
+        elif score >= 20:
+            job["match_label"] = "Moderate Match"
+            job["match_color"] = "orange"
+        else:
+            job["match_label"] = "Low Match"
+            job["match_color"] = "red"
 
     all_jobs.sort(key=lambda j: j.get("match_score", 0), reverse=True)
 
@@ -879,8 +891,6 @@ def user_content_profile(user, skills_list): #builds text blob with everything k
 
     if user.career_goal:
         parts.append(user.career_goal) 
-
-    parts.extend(saved_texts)
     parts.extend(saved_texts)
 
     profile_text = " ".join(parts).lower().strip()
@@ -901,8 +911,11 @@ def get_synonyms(user_goal, first_saved_job=""):
         synonyms=json.loads(text)
         return synonyms[:3]
     except Exception as e:
-        print(f"Ollama error: {e}")
-        return []
+        import traceback
+        traceback.print_exc()  # add this line
+        print(f"Error: {e}")
+        filtered = []
+        
 
 
 def get_logged_user():
@@ -1039,12 +1052,51 @@ def tfidf_cosine_score(user_profile_text, job_text): # compares two user profile
 
     return result
 
+def title_match_score(user_goal, job_title):
+    if not user_goal or not job_title:
+        return 0.0
 
-def calculate_match(combined_skills, profile_text, job_skills, job_desc, job_title): 
+    user_goal = user_goal.lower().strip()
+    job_title = job_title.lower().strip()
+
+    if user_goal == job_title:
+        return 100.0
+    if user_goal in job_title:
+        return 75.0
+
+    user_words = set(user_goal.split())
+    title_words = set(job_title.split())
+
+    if not user_words:
+        return 0.0
+
+    overlap = len(user_words & title_words) / len(user_words)
+    return round(overlap * 100, 2)
+
+def calculate_match(combined_skills, profile_text, job_skills, job_desc, job_title,user_experience=None,job_experience="",user_goal=""): 
+
+    job_text = f"{job_title} {' '.join(job_skills)}"
+    
     skill_score = skill_overlap_score(combined_skills, job_skills)
-    cosine_score = tfidf_cosine_score(profile_text, job_desc)
+    cosine_score = tfidf_cosine_score(profile_text, job_text)
     title_score = tfidf_cosine_score(profile_text, job_title)
-    return round(0.40 * skill_score + 0.4 * cosine_score + 0.20 * title_score, 2)
+    if user_experience:
+        result = round(0.40 * skill_score + 0.40 * cosine_score + 0.20 * title_score, 2)
+    else:
+        result = round(0.50 * skill_score + 0.50 * cosine_score, 2)
+    
+   
+    if user_experience and job_experience:
+        if user_experience.lower() == job_experience.lower():
+            result += 5
+
+    if user_goal:
+        if user_goal.lower() in job_title.lower():
+            result += 5
+    return round(result, 2)
+    
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
