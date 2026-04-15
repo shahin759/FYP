@@ -619,7 +619,7 @@ def edit_account():
             new_password = request.form.get("password", "")
             confirm_password = request.form.get("confirm-password", "")
 
-            valid = is_valid_password(password, confirm_password)
+            valid = is_valid_password(new_password, confirm_password)
             if valid[0] == False:
                 flash(valid[1], 'error')
                 return redirect(url_for('signup_page'))
@@ -912,7 +912,7 @@ def get_synonyms(user_goal, first_saved_job=""):
         return synonyms[:3]
     except Exception as e:
         import traceback
-        traceback.print_exc()  # add this line
+        traceback.print_exc() 
         print(f"Error: {e}")
         filtered = []
         
