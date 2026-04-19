@@ -135,7 +135,7 @@ def home_page():
 
     if "user" in session and user_goal and not search_keywords and not show_all:
         params['keywords'] = user_goal  # uses the users career goal as search word to display relevant jobs
-    elif user:
+    elif user and not search_keywords and not show_all:
          first_saved_job = SavedJobs.query.filter_by(user_id=user.id).first()
          if first_saved_job and first_saved_job.job_title:
             params['keywords'] = first_saved_job.job_title
@@ -178,10 +178,12 @@ def job_details(job_id):
     try:
         job = fetch_job(job_id)
         skills_list = load_skills("csv/skills.csv")  #loads job description and extract skills 
-        job_desc = job.get("jobDescription") or ""
+        job_desc = clean_text(job.get("jobDescription", ""))
+        job_title = job.get("jobTitle", "") or ""
         job_desc_norm = " ".join(str(job_desc).lower().split())
         job_skills = extract_skills_from_description(job_desc_norm, skills_list)
-
+        job["experience_level"] = extract_experience_level(job_title)
+    
         user_skills = []
         match_result = None
         recommended_courses = []
@@ -210,7 +212,13 @@ def job_details(job_id):
 
                 combined_skills, profile_text = user_content_profile(user, skills_list)
                 job_experience = extract_experience_level(job.get("jobTitle", ""))
-                score = calculate_match(combined_skills,profile_text,job_skills,job_desc,job.get("jobTitle", ""),user.experience_level if user else None,job_experience,user.career_goal if user else "")
+                score = calculate_match(
+                    combined_skills, profile_text, job_skills, job_desc,
+                    job.get("jobTitle", ""),
+                    (user.experience_level or "").lower(),
+                    job_experience,
+                    (user.career_goal or "").lower()
+                )
 
                 match_result = {
                     'score': score,
@@ -259,7 +267,7 @@ def job_match_reasoning(job_id):
     try:
         job = fetch_job(job_id)
         skills_list = load_skills("csv/skills.csv") 
-        job_desc = job.get("jobDescription") or ""
+        job_desc = clean_text(job.get("jobDescription", ""))
         job_desc_norm = " ".join(str(job_desc).lower().split())
         job_skills = extract_skills_from_description(job_desc_norm, skills_list)
 
@@ -585,7 +593,8 @@ def extract_skills_from_cv():
 
     return redirect(url_for("upload_cv"))
 
-    
+def clean_text(html_text):
+    return re.sub(r'<.*?>', '', html_text)
 
     
 @app.route('/edit_account', methods=["GET", "POST"]) # allows user to edit account details
@@ -836,43 +845,32 @@ def get_scored_jobs(params,user, user_skills, user_profile_text, user_experience
         combined_skills, profile_text = user_content_profile(user, skills_list)
 
     for job in all_jobs:
-        job_desc = job.get("jobDescription", "") or ""
-        job_title = job.get("jobTitle", "") or ""
-        job_desc_norm = " ".join(str(job_desc).lower().split())
-        job_skills = extract_skills_from_description(job_desc_norm, skills_list)
-        job["experience_level"] = extract_experience_level(job_title)
-        job["match_score"] = calculate_match(combined_skills, profile_text, job_skills, job_desc, job_title
-        ,user_experience, job["experience_level"],user_goal)
-        score = job["match_score"]
-        
-        if score >=49:
-            job["match_label"] = "Strong Match"
-            job["match_color"] = "green"
-        elif score >= 20:
-            job["match_label"] = "Moderate Match"
-            job["match_color"] = "orange"
-        else:
-            job["match_label"] = "Low Match"
-            job["match_color"] = "red"
+     full_job = fetch_job(job.get("jobId"))
+
+     job_desc = clean_text(full_job.get("jobDescription", ""))
+     job_title = full_job.get("jobTitle", "") or ""
+     job_desc_norm = " ".join(str(job_desc).lower().split())
+     job_skills = extract_skills_from_description(job_desc_norm, skills_list)
+
+     job["experience_level"] = extract_experience_level(job_title)
+     job["match_score"] = calculate_match(combined_skills,profile_text,job_skills,job_desc, job_title,user_experience,job["experience_level"],user_goal
+    )
+
+     score = job["match_score"]
+
+     if score >= 49:
+         job["match_label"] = "Strong Match"
+         job["match_color"] = "green"
+     elif score >= 20:
+         job["match_label"] = "Moderate Match"
+         job["match_color"] = "orange"
+     else:
+         job["match_label"] = "Low Match"
+         job["match_color"] = "red"
 
     all_jobs.sort(key=lambda j: j.get("match_score", 0), reverse=True)
 
-    if user_experience and not show_all:
-        aligned_jobs = []
-        for job in all_jobs:
-            job_exp = job.get("experience_level", "Not specified")
-            if job_exp == "Not specified" or user_experience.lower() in job_exp.lower():
-                aligned_jobs.append(job)
 
-        aligned_jobs.sort(key=lambda j: (
-            0 if user_experience.lower() in j.get("experience_level", "").lower() else 1,
-            -j.get("match_score", 0)
-        ))
-
-        if len(aligned_jobs) >= 5:
-            return aligned_jobs
-        else:
-            return all_jobs
 
     return all_jobs
 
@@ -1083,15 +1081,12 @@ def calculate_match(combined_skills, profile_text, job_skills, job_desc, job_tit
 
     job_text = f"{job_title} {' '.join(job_skills)}"
     
+    
     skill_score = skill_overlap_score(combined_skills, job_skills)
     cosine_score = tfidf_cosine_score(profile_text, job_text)
-    title_score = tfidf_cosine_score(profile_text, job_title)
-    if user_experience:
-        result = round(0.40 * skill_score + 0.40 * cosine_score + 0.20 * title_score, 2)
-    else:
-        result = round(0.50 * skill_score + 0.50 * cosine_score, 2)
-    
-   
+
+    result = round(0.50 * skill_score + 0.50 * cosine_score, 2)
+
     if user_experience and job_experience:
         if user_experience.lower() == job_experience.lower():
             result += 5
@@ -1099,6 +1094,7 @@ def calculate_match(combined_skills, profile_text, job_skills, job_desc, job_tit
     if user_goal:
         if user_goal.lower() in job_title.lower():
             result += 5
+
     return round(min(result, 100), 2)
     
 
