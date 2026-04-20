@@ -124,6 +124,7 @@
   .flash.error {
     background: #dc3545;
   }
+  .flash.info    { background: #e3df0c; }
   
   body.high-contrast {
     background: #000;

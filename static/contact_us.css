@@ -118,6 +118,7 @@ body {
 .flash.error {
     background-color: #dc3545;
 }
+.flash.info    { background: #e3df0c; }
 
 @media (max-width: 768px) {
     .main-container {

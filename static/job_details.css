@@ -278,6 +278,7 @@ p {
 
 .flash.success { background: #34a853; }
 .flash.error   { background: #d93025; }
+.flash.info    { background: #e3df0c; }
 
 .continue-application {
     --color: #fff;
@@ -575,6 +576,7 @@ body.high-contrast {
   body.high-contrast .profile-incomplete a {
     color: #00ffff;
   }
+  
   @media (max-width: 768px) {
     body {
         padding: 10px;
@@ -632,4 +634,7 @@ body.high-contrast .similar-job-card button {
 
 body.high-contrast .similar-job-card button:hover {
     background-color: #00d9ff;
+}
+.h2{
+    font-size: 10px;
 }

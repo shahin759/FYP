@@ -510,9 +510,14 @@ def upload_cv():
           flash("Career goal removed", "success")
         
         elif action=="delete_all":
-          UserSkill.query.filter_by(user_id=user.id).delete()
-          db.session.commit()
-          flash("All skills removed", "success")
+            skills = UserSkill.query.filter_by(user_id=user.id).all()
+            if skills:
+                UserSkill.query.filter_by(user_id=user.id).delete()
+                db.session.commit()
+                flash("All skills removed", "success")
+            else:
+                flash("No skills to remove", "info")
+
 
 
         elif action=="save_experience":
@@ -562,6 +567,10 @@ def extract_skills_from_cv():
         extract_text_to_fp(io.BytesIO(pdf_bytes), output, laparams=LAParams())
         cv_text = output.getvalue().lower()
         cv_text = re.sub(r"\s+", " ", cv_text).strip()
+
+        if cv_text=="":
+            flash("CV is blank please upload a valid CV", "error")
+            return redirect(url_for("upload_cv"))
 
         if not cv_text:
             flash("Could not extract text from PDF", "error")
@@ -738,7 +747,7 @@ def explain_match_score(user_skills_tuple, user_experience, user_goal, job_title
     missing_skills = list(missing_tuple)
 
 
-    prompt = f"""Act as a careers advisor, write a brief paragraph(max 4 sentences), explaing th candidates suitability for this role, no headers, no labels , no lists . Be specific
+    prompt = f"""Act as a careers advisor, write a brief paragraph(max 4 sentences), explaing the candidates suitability for this role, no headers, no labels , no lists . Be specific no labels, dont mention "the candiadte" talk like your talking to the user, dont be overly agreeing. If job title is not related to user career goal at all, just a simple explanation is enough max 2 sentences.
    
     User:
     - Skills: {', '.join(user_skills)}
@@ -748,7 +757,7 @@ def explain_match_score(user_skills_tuple, user_experience, user_goal, job_title
     Job: {job_title}
     Matching skills: {', '.join(matching_skills)}
     Missing skills: {', '.join(missing_skills)}  
-    make no mistakes , just the paragraph"""
+    make no mistakes , just the paragraph .If job title is not related to user career goal at all, just a simple explanation is enough max 2 sentences!!!"""
 
     try:
         response = ollama.chat(model='llama3.2:1b',messages=[{'role': 'user', 'content': prompt}],
@@ -823,7 +832,7 @@ def load_skills(path):
 
     return skills
 
-
+@cache.memoize(timeout=300) 
 def get_scored_jobs(params,user, user_skills, user_profile_text, user_experience, show_all, user_goal="",search_keywords=""):# gets user profile and scores jobs
 
     skills_list = load_skills("csv/skills.csv")
@@ -832,7 +841,7 @@ def get_scored_jobs(params,user, user_skills, user_profile_text, user_experience
         all_jobs = fetch_jobs(user_goal, user_experience, params, user)
     else:
         data = job_fetch(tuple(sorted(params.items())))
-        all_jobs = data.get("results", [])[:50]
+        all_jobs = data.get("results", [])[:15]
 
     if show_all:
         return all_jobs
@@ -868,7 +877,7 @@ def get_scored_jobs(params,user, user_skills, user_profile_text, user_experience
          job["match_label"] = "Low Match"
          job["match_color"] = "red"
 
-    all_jobs.sort(key=lambda j: j.get("match_score", 0), reverse=True)
+    all_jobs.sort(key=lambda j: (0 if user_experience and user_experience.lower() in j.get("experience_level", "").lower() else 1,-j.get("match_score", 0)))
 
 
 

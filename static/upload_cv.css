@@ -37,7 +37,7 @@ form {
   outline: none;
   border-color: #007bff;
 }
-
+.flash.info    { background: #e3df0c; }
 .loged {
   margin-top: 10px;
   padding: 8px 12px;
@@ -297,4 +297,5 @@ body.high-contrast .flash.error {
       align-items: stretch;
   }
 }
+
 

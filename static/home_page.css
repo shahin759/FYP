@@ -151,6 +151,7 @@ li p {
 
 .flash.success { background: #28a745; }
 .flash.error   { background: #dc3545; }
+.flash.info    { background: #e3df0c; }
 
 
 @keyframes slideIn {

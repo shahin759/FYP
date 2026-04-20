@@ -52,7 +52,7 @@ body {
     font-weight: bold;
     transition: 0.2s ease;
 }
-
+.flash.info    { background: #e3df0c; }
 .loged:hover {
     background-color: #0056b3;
 }
