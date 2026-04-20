@@ -82,26 +82,28 @@ body {
     font-weight: 600;
 }
 
-.account-actions {
+.account-action {
     text-align: center;
     margin-top: 30px;
+  
+    border: none;
+   
 }
 
 .btn {
     display: inline-block;
     padding: 12px 22px;
-    background: linear-gradient(135deg, #007bff, #0056b3);
+    background-color: #007bff;
     color: white;
     text-decoration: none;
     border-radius: 8px;
     font-weight: bold;
     transition: 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.25);
+
 }
 
 .btn:hover {
-    transform: translateY(-2px);
-    background: linear-gradient(135deg, #0056b3, #004494);
+  background-color: #0056b3;
 }
 
 .flash-container {
@@ -126,7 +128,7 @@ body {
 
 .flash.success { background-color: #28a745; }
 .flash.error   { background-color: #dc3545; }
-.flash.info    { background-color: #007bff; }
+.flash.info    { background: #e3df0c; }
 
 @media (max-width: 600px) {
     .info-row {

@@ -41,7 +41,7 @@ class seeker_test(unittest.TestCase):
         score=tfidf_cosine_score("python sql java and oop","graphic design")
         self.assertLess(score,20)
     
-    def test_tfidf_cosine_score_low_empty(self):
+    def test_tfidf_cosine_score_empty(self):
         score=tfidf_cosine_score("python sql java and oop","")
         self.assertEqual(score,0)
 

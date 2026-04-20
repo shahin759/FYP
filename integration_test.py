@@ -276,3 +276,8 @@ class IntegrationTests(unittest.TestCase):
     def test_edit_account_access(self):
          response=self.client.post('/edit_account', follow_redirects=True)
          self.assertIn(b'Login first', response.data)
+    
+    def test_password_hash(self):
+        with app.app_context():
+            user = User.query.filter_by(email='user@gmail.com').first()
+            self.assertNotEqual(user.password,'Password@123')

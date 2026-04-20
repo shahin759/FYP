@@ -633,12 +633,21 @@ def edit_account():
                 flash("That email is already in use", "error")
                 return redirect(url_for("edit_account"))
 
-            user.email = new_email
-            db.session.commit()
-            session['user'] = new_email
+            token = secrets.token_urlsafe(24)
+            reset_tokens[token] = {"type": "email_update", "old_email": user.email, "new_email": new_email}
+            link = url_for('update_email_confirmation', token=token, _external=True)
+            try:
+                msg = Message(
+                    subject="Confirm your email change",
+                    recipients=[user.email],
+                    body=f"Click the link to confirm your email change\n{link}\n"
+                )
+                mail.send(msg)
+                flash('Email has been sent to your current email approve to change email', 'success')
+            except Exception as e:
+                print(f"Mail error: {e}")
+                flash('Error sending mail', 'error')
 
-            flash("Email updated", "success")
-            return redirect(url_for("edit_account"))
 
         elif action == "update_password":
             new_password = request.form.get("password", "")
@@ -687,6 +696,29 @@ def forgot_password():
             flash('If account exists you will receive email link', 'info')
         return redirect(url_for('login_page'))
     return render_template("forgot_password.html")
+
+@app.route('/update_email_confirmation/<token>',methods=["POST","GET"])
+def update_email_confirmation(token):
+    email=reset_tokens.get(token)
+
+    if not email:
+        flash('Invalid link, please try again','error')
+        return redirect(url_for('login_page'))
+    
+    user = User.query.filter_by(email=email["old_email"]).first()
+    if not user:
+        flash("User not found", "error")
+        return redirect(url_for("login_page"))
+        
+    user.email = email["new_email"]
+    db.session.commit()
+    session['user'] = email["new_email"]
+    del reset_tokens[token]
+    flash("Email updated successfully", "success")
+    return redirect(url_for("account_page"))
+
+    
+    
 
 @app.route('/reset_password/<token>',methods=["POST","GET"])#after user clicks email , they can reset password
 def reset_password(token):
