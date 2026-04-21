@@ -108,7 +108,7 @@ def home_page():
     location = request.args.get('location', '')
     page = int(request.args.get('page', 1))
     show_all = request.args.get('all') == '1'
-    per_page = 22
+    per_page = 15
 
     params = {}
     if search_keywords:
