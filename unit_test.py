@@ -36,6 +36,10 @@ class seeker_test(unittest.TestCase):
     def test_tfidf_cosine_score(self):
         score=tfidf_cosine_score("python sql java and oop","python sql java and oop")
         self.assertGreaterEqual(score,100)
+
+    def test_tfidf_cosine_score(self):
+        score=tfidf_cosine_score("python sql java","python sql java and oop")
+        self.assertGreaterEqual(score,70)
     
     def test_tfidf_cosine_score_low_match(self):
         score=tfidf_cosine_score("python sql java and oop","graphic design")

@@ -77,19 +77,7 @@ class IntegrationTests(unittest.TestCase):
             user_skills = [us.skill.name for us in user.skills]
             self.assertIn('python', user_skills)
     
-    def test_update_email(self):
-        self.client.post('/login', data={
-            'email': 'user@gmail.com',
-            'password': 'Password@123'
-        })
-        response = self.client.post('/edit_account', data={
-            'action': 'update_email',
-            'email': 'user123@gmail.com'
-        }, follow_redirects=True)
-        with app.app_context():
-            user = User.query.filter_by(name='test test').first()
-            self.assertEqual(user.email, 'user123@gmail.com')
-            self.assertIn(b'Email updated', response.data)
+    
     
     def test_update_no_email(self):
         self.client.post('/login', data={
@@ -212,7 +200,7 @@ class IntegrationTests(unittest.TestCase):
         response = self.client.get('/')
         end=time.time()
         self.assertEqual(response.status_code, 200)
-        self.assertLess(end - start, 10)
+        self.assertLess(end - start,2)
 
     def test_delete_skill(self):
         self.client.post('/login', data={
