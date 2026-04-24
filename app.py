@@ -1126,7 +1126,7 @@ def calculate_match(combined_skills, profile_text, job_skills, job_desc, job_tit
     skill_score = skill_overlap_score(combined_skills, job_skills)
     cosine_score = tfidf_cosine_score(profile_text, job_text)
 
-    result = round(0.50 * skill_score + 0.50 * cosine_score, 2)
+    result = round(1.0 * skill_score + 0.0 * cosine_score, 1)
 
     if user_experience and job_experience:
         if user_experience.lower() == job_experience.lower():
@@ -1136,7 +1136,7 @@ def calculate_match(combined_skills, profile_text, job_skills, job_desc, job_tit
         if user_goal.lower() in job_title.lower():
             result += 5
 
-    return round(min(result, 100), 2)
+    return round(min(result, 100), 1)
     
 
 
